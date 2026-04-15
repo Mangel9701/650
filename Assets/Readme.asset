@@ -9,26 +9,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fcf7219bab7fe46a1ad266029b2fee19, type: 3}
+  m_Script: {fileID: 11500000, guid: a45dd8e618ab431498ea20f08a709bbd, type: 3}
   m_Name: Readme
-  m_EditorClassIdentifier: 
-  icon: {fileID: 2800000, guid: 727a75301c3d24613a3ebcec4a24c2c8, type: 3}
-  title: URP Empty Template
+  m_EditorClassIdentifier: Assembly-CSharp::ReadmeData
+  icon: {fileID: 2800000, guid: 0056f0957ec4a68429469f7d0461f79e, type: 3}
+  banner: {fileID: 0}
+  accentColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  introBlocks:
+  - title: Bienvenido
+    subtitle: 'Bienvenido a esta herramienta esto es lo que debes tener en cuenta '
+    image: {fileID: 0}
+    imageFullWidth: 1
+  - title: 'Requerimientos:'
+    subtitle: 'Cinemachine
+
+      Addresables
+
+      TextMeshPro
+
+      (New) InputSystem'
+    image: {fileID: 0}
+    imageFullWidth: 1
   sections:
-  - heading: Welcome to the Universal Render Pipeline
-    text: This template includes the settings and assets you need to start creating with the Universal Render Pipeline.
+  - heading: Adddresables
+    text: 'Necesitas crear los grupos de Addresables y poner cada uno en su grupo
+      correspondiente
+
+
+      NOTA: Se recomienda poner nombres cortos ya que con
+      estos nombres se van a identificar en la carga de escenas'
+    image: {fileID: 2800000, guid: 331ffc1d9f3773442afe3563f636690e, type: 3}
+    imageFullWidth: 1
     linkText: 
-    url:
-  - heading: URP Documentation
-    text:
-    linkText: Read more about URP
-    url: https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest
-  - heading: Forums
-    text:
-    linkText: Get answers and support
-    url: https://forum.unity.com/forums/universal-render-pipeline.383/
-  - heading: Report bugs
-    text:
-    linkText: Submit a report
-    url: https://unity3d.com/unity/qa/bug-reporting
-  loadedLayout: 1
+    url: 
