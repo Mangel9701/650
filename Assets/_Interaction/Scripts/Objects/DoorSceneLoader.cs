@@ -22,12 +22,21 @@ public class DoorSceneLoader : MonoBehaviour
     {
         if (other.name == "Main Player" && gameObject.name == "ColliderDoorScene")
         {
-            DoorManager.Instance.SaveAdressableString(sceneAddress);
+            /*DoorManager.Instance.SaveAdressableString(sceneAddress);
             DoorManager.Instance.LastDoorUsed = doorID;
             sceneAddress = DoorManager.Instance.GetAdressableAdress();
 
-            LoadLoadingScreen();
+            LoadLoadingScreen();*/
+            LoadScene();
         }
+    }
+    public void LoadScene()
+    {
+        DoorManager.Instance.SaveAdressableString(sceneAddress);
+        DoorManager.Instance.LastDoorUsed = doorID;
+        sceneAddress = DoorManager.Instance.GetAdressableAdress();
+
+        LoadLoadingScreen();
     }
 
     public void LoadSceneAdressable()

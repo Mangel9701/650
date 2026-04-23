@@ -6,14 +6,20 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/650/Scenes/650-MenuInicial.unity
+    guid: 62e728e3c7a23b641b81130f9d9356c9
+  - enabled: 0
     path: Assets/650/Scenes/650-Interaccion.unity
     guid: 71ba721252b09ed48911193e8109413f
-  - enabled: 1
+  - enabled: 0
     path: Assets/650/Scenes/650-PB.unity
     guid: cde5da13572ed334da3040ad51646db2
-  - enabled: 1
+  - enabled: 0
     path: Assets/650/Scenes/650-Geo.unity
     guid: 8af3775ee2b696a4196a6791c5abd842
+  - enabled: 1
+    path: Assets/_Interaction/Scenes/LoadingScreen.unity
+    guid: 9218295c6061c61449b92e5cc3fd14dc
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 3422be8fd34919e448bf01b4c25c86df, type: 2}
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
