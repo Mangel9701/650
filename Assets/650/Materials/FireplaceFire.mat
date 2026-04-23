@@ -25,12 +25,12 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _DistortionScale: 10
-    - _DistortionStrength: 0.3
-    - _EmissiveIntensity: 5
-    - _HeightFade: 2
-    - _NoiseScale: 6
-    - _WidthFade: 8
+    - _DistortionScale: 6.77
+    - _DistortionStrength: 0.248
+    - _EmissiveIntensity: 17.9
+    - _HeightFade: 0.86
+    - _NoiseScale: 20
+    - _WidthFade: 0.17
     m_Colors:
     - _BaseColor: {r: 0.8, g: 0.1, b: 0, a: 1}
     - _HighColor: {r: 1, g: 0.9, b: 0.2, a: 1}
