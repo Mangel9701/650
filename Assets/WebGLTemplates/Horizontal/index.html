@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>{{{ PRODUCT_NAME }}}</title>
+
+  <meta name="viewport"
+    content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes" />
+
+
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Colegios CRISFE - Carcelén" />
+  <meta property="og:description" content="Recorre la experiencia Colegios CRISFE - Carcelén." />
+  <!-- <meta property="og:image" content="https://tudominio.com/og-thumbnail.png" /> -->
+  <meta property="og:type" content="website" />
+  <!-- <meta property="og:url" content="https://tudominio.com/" /> -->
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Colegios CRISFE - Carcelén" />
+  <meta name="twitter:description" content="Recorre la experiencia Colegios CRISFE - Carcelén." />
+  <!-- <meta name="twitter:image" content="https://tudominio.com/og-thumbnail.png" /> -->
+
+  <link rel="shortcut icon" href="TemplateData/favicon.png" />
+  <script src="TemplateData/pleaserotate.js"></script>
+
+  <style>
+    @font-face {
+      font-family: "Barlow Condensed";
+      src: url("TemplateData/BarlowCondensed-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: "Barlow Condensed", sans-serif;
+    }
+
+    #unity-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #unity-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      outline: none;
+    }
+
+    #unity-loading-bar {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      background: #000;
+    }
+
+    #unity-logo {
+      width: min(300px, 60vh);
+      height: auto;
+      margin-bottom: 50px;
+      margin-top: 20px;
+    }
+
+    #unity-progress-bar-empty {
+      width: min(420px, 78vw);
+      height: 18px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    #unity-progress-bar-full {
+      width: 0%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 999px;
+      transition: width 0.12s linear;
+    }
+
+    #unity-progress-text {
+      color: #ffffff;
+      font-size: 1rem;
+      margin-top: 10px;
+      letter-spacing: 0.03em;
+    }
+
+    #unity-warning {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%);
+      z-index: 30;
+      width: min(90vw, 640px);
+    }
+
+    .unity-warning-item {
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      color: #111;
+      font-size: 0.95rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .unity-warning-error {
+      background: #ffb3b3;
+    }
+
+    .unity-warning-warning {
+      background: #ffe08a;
+    }
+
+    #unity-footer {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 25;
+      pointer-events: none;
+    }
+
+    #unity-fullscreen-button {
+      pointer-events: auto;
+      width: 46px;
+      height: 46px;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      user-select: none;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    #unity-fullscreen-button:hover {
+      background: rgba(0, 0, 0, 0.68);
+    }
+
+    #unity-fullscreen-button::before {
+      content: "⛶";
+      color: white;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    @media (max-width: 768px) {
+      #unity-logo {
+        width: min(240px, 62vw);
+      }
+
+      #unity-fullscreen-button {
+        width: 42px;
+        height: 42px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+    <div id="unity-loading-bar">
+      <img id="unity-logo" src="TemplateData/LogoActual.png" alt="Logo" />
+
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+
+      <div id="unity-progress-text">Cargando 0%</div>
+    </div>
+
+    <div id="unity-warning"></div>
+
+    <div id="unity-footer">
+      <div id="unity-fullscreen-button" title="Pantalla completa"></div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById("unity-container");
+    const canvas = document.getElementById("unity-canvas");
+    const loadingBar = document.getElementById("unity-loading-bar");
+    const progressBarFull = document.getElementById("unity-progress-bar-full");
+    const progressText = document.getElementById("unity-progress-text");
+    const warningBanner = document.getElementById("unity-warning");
+    const fullscreenButton = document.getElementById("unity-fullscreen-button");
+
+    let unityInstanceRef = null;
+
+    function unityShowBanner(msg, type) {
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? "block" : "none";
+      }
+
+      const div = document.createElement("div");
+      div.innerHTML = msg;
+      div.className =
+        "unity-warning-item " +
+        (type === "error" ? "unity-warning-error" : "unity-warning-warning");
+
+      warningBanner.appendChild(div);
+
+      if (type !== "error") {
+        setTimeout(() => {
+          if (div.parentNode) {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }
+        }, 5000);
+      }
+
+      updateBannerVisibility();
+    }
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+    }
+
+    function hideRotateMessage() {
+      document
+        .querySelectorAll('[id^="pleaserotate-backdrop"]')
+        .forEach((el) => (el.style.display = "none"));
+
+      if (window.PleaseRotate) {
+        PleaseRotate.stop();
+      }
+    }
+
+    function showRotateMessage() {
+      document
+        .querySelectorAll('[id^="pleaserotate-backdrop"]')
+        .forEach((el) => (el.style.display = "block"));
+
+      if (window.PleaseRotate) {
+        PleaseRotate.stop();
+        PleaseRotate.start({
+          forcePortrait: false,
+          allowClickBypass: false,
+          message: "",
+          subMessage: ""
+        });
+      }
+    }
+
+    function isIPad() {
+      const ua = navigator.userAgent || "";
+      const isOldiPad = /iPad/i.test(ua);
+      const isNewiPadOS =
+        navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      return isOldiPad || isNewiPadOS;
+    }
+
+    function isAnyMobile() {
+      const ua = navigator.userAgent || "";
+      const uaSaysMobile = /Android|iPhone|iPod/i.test(ua) || isIPad();
+      const coarsePointer =
+        window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      return uaSaysMobile || coarsePointer;
+    }
+
+    function checkOrientation() {
+      resizeCanvas();
+
+      if (!isAnyMobile()) {
+        hideRotateMessage();
+        return;
+      }
+
+      if (window.innerWidth > window.innerHeight) {
+        hideRotateMessage();
+      } else {
+        showRotateMessage();
+      }
+    }
+
+    async function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement) {
+          if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          }
+
+          if (unityInstanceRef) {
+            unityInstanceRef.SetFullscreen(1);
+          }
+        } else {
+          await document.exitFullscreen();
+
+          if (unityInstanceRef) {
+            unityInstanceRef.SetFullscreen(0);
+          }
+        }
+      } catch (e) {
+        console.warn("No se pudo cambiar fullscreen.", e);
+      }
+
+      resizeCanvas();
+    }
+
+    resizeCanvas();
+
+    if (isAnyMobile()) {
+      checkOrientation();
+      window.addEventListener("orientationchange", checkOrientation);
+      window.addEventListener("resize", checkOrientation);
+    } else {
+      window.addEventListener("resize", resizeCanvas);
+    }
+
+    const buildUrl = "Build";
+    const loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+
+    const config = {
+      arguments: [],
+      dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+      frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+      productName: {{{ JSON.stringify(PRODUCT_NAME) }}},  
+      
+    showBanner: unityShowBanner
+      };
+
+    loadingBar.style.display = "flex";
+
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        const pct = Math.round(progress * 100);
+        progressBarFull.style.width = pct + "%";
+        progressText.textContent = "Cargando " + pct + "%";
+      })
+        .then((unityInstance) => {
+          unityInstanceRef = unityInstance;
+          loadingBar.style.display = "none";
+
+          fullscreenButton.onclick = toggleFullscreen;
+          checkOrientation();
+        })
+        .catch((message) => {
+          alert(message);
+        });
+    };
+
+    document.body.appendChild(script);
+  </script>
+</body>
+
+</html>
