@@ -31,6 +31,8 @@ public class UIIngameManager : MonoBehaviour
 
     [Header("Video")]
     [SerializeField] private RawImage itemVideoPlayer;
+    [SerializeField] private Image itemImage;
+
     [SerializeField] private VideoPlayer videoPlayer;
     [SerializeField] private CanvasGroup itemVideoCanvasGroup;
     [SerializeField] private Material OriginalMat;
@@ -183,6 +185,77 @@ public class UIIngameManager : MonoBehaviour
             itemPanel.SetActive(false);
     }
 
+    public void ShowVideoPanelFromUrl(
+    string videoUrl,
+    bool isOscilating,
+    Vector2 videoPosition = default,
+    Vector3 videoScale = default
+)
+    {
+        if (string.IsNullOrWhiteSpace(videoUrl))
+        {
+            Debug.LogWarning("[UIIngameManager] URL de video vacía.");
+            return;
+        }
+
+        if (videoPlayer == null || itemVideoPlayer == null)
+        {
+            Debug.LogWarning("[UIIngameManager] Faltan referencias de VideoPlayer o RawImage.");
+            return;
+        }
+        HideImageDisplay();
+        OpenDisplayPanel();
+
+        OscilationMode = isOscilating;
+        _videoClipForward = null;
+        _videoClipReverse = null;
+        _playForwardNext = true;
+        _isFirstVideoPlay = true;
+
+        ShowObjLoader(true);
+        itemVideoPlayer.gameObject.SetActive(true);
+
+        if (itemVideoCanvasGroup != null)
+        {
+            itemVideoCanvasGroup.alpha = 0f;
+            itemVideoCanvasGroup.interactable = false;
+            itemVideoCanvasGroup.blocksRaycasts = false;
+        }
+
+        itemVideoPlayer.enabled = false;
+        itemVideoPlayer.color = Color.white;
+
+        ApplyVideoTransform(videoPosition, videoScale);
+
+        videoPlayer.prepareCompleted -= OnVideoPrepared;
+        videoPlayer.frameReady -= OnVideoFrameReady;
+        videoPlayer.errorReceived -= OnVideoError;
+        videoPlayer.loopPointReached -= OnVideoFinished;
+
+        videoPlayer.waitForFirstFrame = true;
+        videoPlayer.sendFrameReadyEvents = true;
+        videoPlayer.isLooping = isOscilating;
+        videoPlayer.skipOnDrop = true;
+        videoPlayer.playOnAwake = false;
+
+        videoPlayer.source = VideoSource.Url;
+        videoPlayer.url = videoUrl;
+        videoPlayer.clip = null;
+
+        videoPlayer.prepareCompleted += OnVideoPrepared;
+        videoPlayer.frameReady += OnVideoFrameReady;
+        videoPlayer.errorReceived += OnVideoError;
+        videoPlayer.loopPointReached += OnVideoFinished;
+
+        var rtExistente = itemVideoPlayer.texture as RenderTexture;
+        UseExistingRenderTextureForVideo(rtExistente);
+
+        _waitingFirstFrame = true;
+        _showLoaderThisCycle = true;
+
+        videoPlayer.Prepare();
+    }
+
     public void ShowVideoPanel(
         VideoClip videoClip,
         bool isOscilating,
@@ -202,8 +275,11 @@ public class UIIngameManager : MonoBehaviour
             Debug.LogWarning("[UIIngameManager] Faltan referencias de VideoPlayer o RawImage.");
             return;
         }
-
+        HideImageDisplay();
         OpenDisplayPanel();
+
+        videoPlayer.source = VideoSource.VideoClip;
+        videoPlayer.url = string.Empty;
 
         OscilationMode = isOscilating;
         _videoClipForward = videoClip;
@@ -248,6 +324,11 @@ public class UIIngameManager : MonoBehaviour
         PrepareAndPlayCurrent();
     }
 
+    public void HideImageDisplayPublic()
+    {
+        HideImageDisplay();
+    }
+
     public void ShowImagePanel(List<Sprite> images, bool showSlideOnly)
     {
         if (images == null || images.Count == 0)
@@ -263,7 +344,18 @@ public class UIIngameManager : MonoBehaviour
         _currentImageIndex = 0;
         _showSlideOnly = showSlideOnly;
 
-    }    
+        if (itemImage != null)
+        {
+            itemImage.sprite = _currentImages[_currentImageIndex];
+            itemImage.preserveAspect = true;
+            itemImage.color = Color.white;
+
+            itemImage.enabled = true;
+            itemImage.gameObject.SetActive(true);
+        }
+
+        ShowObjLoader(false);
+    }
 
 
     private void ApplyVideoTransform(Vector2 videoPosition, Vector3 videoScale)
@@ -408,10 +500,24 @@ public class UIIngameManager : MonoBehaviour
         _videoClipReverse = null;
     }
 
-   
+    private void HideImageDisplay()
+    {
+        if (itemImage != null)
+        {
+            itemImage.sprite = null;
+            itemImage.enabled = false;
+            itemImage.gameObject.SetActive(false);
+        }
+
+        _currentImages.Clear();
+        _currentImageIndex = 0;
+    }
+
+
     private void HideVisualContentImmediate()
     {
         HideVideoDisplay();
+        HideImageDisplay();
         ShowObjLoader(false);
     }
 

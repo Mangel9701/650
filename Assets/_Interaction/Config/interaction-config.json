@@ -1,0 +1,59 @@
+{
+    "mediaBaseUrl": "https://benignostudio.com/Test_Geo_AR/MediaResources/",
+    "interactions": [
+        {
+            "id": "I_Barco",
+            "nombre": "Barco",
+            "descripcion": "Este es un Barco",
+            "mediaType": "Image",
+            "mediaName": "I_Barco",
+            "extension": "png",
+            "showSlideOnly": true,
+            "oscilate": false,
+            "videoPosition": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "videoScale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "uiPosition": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "interactivePointPosition": {
+                "x": 0.0,
+                "y": 1.0
+            }
+        },
+        {
+            "id": "I_Hoja",
+            "nombre": "Hoja",
+            "descripcion": "Esta es una hoja",
+            "mediaType": "Video",
+            "mediaName": "I_Hoja",
+            "extension": "mp4",
+            "showSlideOnly": false,
+            "oscilate": true,
+            "videoPosition": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "videoScale": {
+                "x": 0.5,
+                "y": 0.5,
+                "z": 0.5
+            },
+            "uiPosition": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "interactivePointPosition": {
+                "x": 0.0,
+                "y": 1.0
+            }
+        }
+    ]
+}
