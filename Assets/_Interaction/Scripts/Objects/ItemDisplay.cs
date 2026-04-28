@@ -13,7 +13,6 @@ public class ItemDisplay : MonoBehaviour
     [Header("Display local")]
     [SerializeField] private bool isVideoDisplay = true;
     [SerializeField] private bool oscilate = false;
-    [SerializeField] public Vector3 eyeOffset = Vector3.zero;
 
     [Header("Video local")]
     [SerializeField] private VideoClip videoClip;
@@ -21,16 +20,13 @@ public class ItemDisplay : MonoBehaviour
     [SerializeField] private Vector2 videoPosition = Vector2.zero;
     [SerializeField] private Vector3 videoScale = Vector3.one;
 
-
-    [Header("Eventos")]
+    [Header("Eventos propios del display")]
     public UnityEvent onDisplayStart;
     public UnityEvent onDisplayEnd;
 
     private RuntimeInteractionItem runtimeItem;
     private bool isUIOpen = false;
     private Coroutine imageLoadCoroutine;
-
-    public Vector3 EyeOffset => eyeOffset;
 
     private void OnEnable()
     {
@@ -45,8 +41,14 @@ public class ItemDisplay : MonoBehaviour
     public void SetRuntimeItem(RuntimeInteractionItem item)
     {
         runtimeItem = item;
+        isVideoDisplay = item.mediaType == InteractionMediaType.Video;
+       
+        oscilate = item.oscilate;
+        videoPosition = item.uiPosition;
+        videoScale = item.videoScale;
+
+
         useRuntimeData = item != null;
-        eyeOffset = item != null ? item.interactivePointPosition : Vector3.zero;
     }
 
     private void HandleUIClose()
@@ -65,7 +67,7 @@ public class ItemDisplay : MonoBehaviour
             CloseDisplayUI();
     }
 
-    private void ShowDisplayUI()
+    public void ShowDisplayUI()
     {
         if (UIIngameManager.Instance == null)
         {
@@ -106,7 +108,9 @@ public class ItemDisplay : MonoBehaviour
             if (imageLoadCoroutine != null)
                 StopCoroutine(imageLoadCoroutine);
 
-            imageLoadCoroutine = StartCoroutine(LoadImageFromUrl(runtimeItem.fullMediaUrl, runtimeItem.showSlideOnly));
+            imageLoadCoroutine = StartCoroutine(
+                LoadImageFromUrl(runtimeItem.fullMediaUrl, runtimeItem.showSlideOnly)
+            );
         }
     }
 
@@ -129,7 +133,6 @@ public class ItemDisplay : MonoBehaviour
                 videoScale
             );
         }
-
     }
 
     private IEnumerator LoadImageFromUrl(string url, bool slideOnly)
@@ -161,10 +164,11 @@ public class ItemDisplay : MonoBehaviour
             new Vector2(0.5f, 0.5f)
         );
 
+        UIIngameManager.Instance.ShowObjLoader(false);
         UIIngameManager.Instance.ShowImagePanel(new List<Sprite> { sprite }, slideOnly);
     }
 
-    private void CloseDisplayUI()
+    public void CloseDisplayUI()
     {
         if (imageLoadCoroutine != null)
         {

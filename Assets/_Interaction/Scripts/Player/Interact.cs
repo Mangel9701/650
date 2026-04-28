@@ -90,8 +90,15 @@ public class Interact : MonoBehaviour
 
             if ((hitLayerMask & layerItem) != 0)
             {
-                firstPerson.isInteracting = true;
-                hit.collider.GetComponent<ItemDisplay>()?.OnInteract();
+                var interactObject = hit.collider.GetComponent<InteractObject>();
+                if (interactObject != null && interactObject.stopPlayerMovementOnInteract)
+                {
+                    firstPerson.isInteracting = true;
+                }
+
+                interactObject.OnInteract();
+
+
             }
             else if ((hitLayerMask & layerDoor) != 0)
             {
@@ -232,9 +239,9 @@ public class Interact : MonoBehaviour
 
         if (!isDoor)
         {
-            if (col.TryGetComponent<ItemDisplay>(out var item))
+            if (col.TryGetComponent<InteractObject>(out var item))
             {
-                worldPos = item.transform.TransformPoint(item.eyeOffset);
+                worldPos = item.transform.TransformPoint(item.EyeOffset);
                 return true;
             }
         }

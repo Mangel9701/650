@@ -230,9 +230,9 @@ public class ItemDetector : MonoBehaviour
     {
         offset = Vector3.zero;
 
-        if (obj.TryGetComponent<ItemDisplay>(out var item))
+        if (obj.TryGetComponent<InteractObject>(out var item))
         {
-            offset = item.eyeOffset;
+            offset = item.EyeOffset;
             return item.transform;
         }
 
@@ -264,8 +264,8 @@ public class ItemDetector : MonoBehaviour
             Vector3 offsetPos = Vector3.zero;
             bool foundOffset = false;
 
-            if (kvp.Key.TryGetComponent<ItemDisplay>(out var item))
-                offsetPos = kvp.Key.TransformPoint(item.eyeOffset);
+            if (kvp.Key.TryGetComponent<InteractObject>(out var item))
+                offsetPos = kvp.Key.TransformPoint(item.EyeOffset);
             if (foundOffset)
                 Gizmos.DrawSphere(offsetPos, 0.02f);
         }
