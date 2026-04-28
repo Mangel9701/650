@@ -46,12 +46,22 @@ public class FirstPersonMovement : MonoBehaviour
         cameraHolder = virtualCamera.transform;
         isMobile = DeviceDetector.Instance.IsMobile;
 
+        ApplyPointerMode();
+    }
 
-        if (!isMobile && !isInteracting)
+    void Update()
+    {
+        if (!isInteracting)
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            HandleMovement();
+
+            if (!usePointerLook)
+            {
+                HandleMouseLook();
+            }
         }
+
+        controller.Move(new Vector3(0, -0.1f, 0));
     }
 
     private void Awake()
@@ -95,8 +105,7 @@ public class FirstPersonMovement : MonoBehaviour
     {
         if (!isMobile && !isInteracting)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            ApplyPointerMode();
         }
     }
 
@@ -110,17 +119,6 @@ public class FirstPersonMovement : MonoBehaviour
         lookInput = context.ReadValue<Vector2>();
     }
 
-    void Update()
-    {
-        if (!isInteracting)
-        {
-            HandleMovement();
-            HandleMouseLook();
-        }
-
-        controller.Move(new Vector3(0, -0.1f, 0));
-    }
-
     public void MoveCameraToTarget(Transform targetPivot)
     {
         isInteracting = true;
@@ -131,6 +129,12 @@ public class FirstPersonMovement : MonoBehaviour
         }
 
         cameraMoveCoroutine = StartCoroutine(SmoothCameraMove(targetPivot));
+    }
+
+    public void SetUsePointerLook(bool value)
+    {
+        usePointerLook = value;
+        ApplyPointerMode();
     }
 
     private IEnumerator SmoothCameraMove(Transform targetPivot)
@@ -196,6 +200,8 @@ public class FirstPersonMovement : MonoBehaviour
 
     private void HandleMouseLook()
     {
+        if (usePointerLook) return;
+
         float mouseX = lookInput.x * mouseSensitivity;
         float mouseY = lookInput.y * mouseSensitivity;
 
@@ -204,6 +210,23 @@ public class FirstPersonMovement : MonoBehaviour
 
         cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
+    }
+
+    private void ApplyPointerMode()
+    {
+        if (isMobile) return;
+
+        if (usePointerLook)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            lookInput = Vector2.zero;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     private void HandleKeyLook()
