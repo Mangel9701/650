@@ -4,6 +4,7 @@ public class RuntimeItemBinder : MonoBehaviour
 {
     [SerializeField] private RuntimeInteractionConfigLoader loader;
     [SerializeField] private ItemDisplay itemDisplay;
+    private InteractObject interactObject;
 
     [Header("Seleccionar interacción")]
     [SerializeField] private string interactionId;
@@ -17,6 +18,7 @@ public class RuntimeItemBinder : MonoBehaviour
     private void Reset()
     {
         itemDisplay = GetComponent<ItemDisplay>();
+        interactObject = GetComponent<InteractObject>();
     }
 
     private void OnEnable()
@@ -33,6 +35,8 @@ public class RuntimeItemBinder : MonoBehaviour
 
     private void Start()
     {
+        itemDisplay = GetComponent<ItemDisplay>();
+        interactObject = GetComponent<InteractObject>();
         if (loader != null && loader.CurrentConfig != null)
             ApplyConfig(loader.CurrentConfig);
     }
@@ -49,6 +53,9 @@ public class RuntimeItemBinder : MonoBehaviour
             Debug.LogWarning($"No se encontró interacción con id: {interactionId}");
             return;
         }
+
+        if (interactObject != null)
+            interactObject.SetEyeOffset(selected.interactivePointPosition);
 
         itemDisplay.SetRuntimeItem(selected);
     }
