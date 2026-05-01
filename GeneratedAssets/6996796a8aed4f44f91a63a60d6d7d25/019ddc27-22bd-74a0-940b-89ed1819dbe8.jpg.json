@@ -1,0 +1,36 @@
+{
+    "asset": "6996796a8aed4f44f91a63a60d6d7d25",
+    "fileName": "019ddc27-22bd-74a0-940b-89ed1819dbe8.jpg",
+    "prompt": "white marble texture with elegant gold and grey veins, luxury calacatta gold style, maintaining the same marble pattern as the reference image",
+    "negativePrompt": "",
+    "model": "f722aea3-8760-4eb1-a516-e2fce6476303",
+    "modelName": "Seedream 4",
+    "customSeed": -1,
+    "w3CTraceId": "9edf7e6a31a19849f69f5062758c0ab3",
+    "feedback": 0,
+    "refinementMode": "Generation",
+    "pixelateTargetSize": 0,
+    "pixelateKeepImageSize": false,
+    "pixelatePixelBlockSize": 0,
+    "pixelateMode": 0,
+    "pixelateOutlineThickness": 0,
+    "doodles": {
+        "m_Items": [
+            {
+                "doodleReferenceType": 7,
+                "doodle": [],
+                "label": "Image",
+                "strength": 0.25,
+                "invertStrength": false,
+                "assetReferenceGuid": "6996796a8aed4f44f91a63a60d6d7d25"
+            }
+        ]
+    },
+    "upscaleFactor": 0,
+    "dimensions": {
+        "width": 1024,
+        "height": 1024
+    },
+    "spriteSheet": false,
+    "duration": 0.0
+}
