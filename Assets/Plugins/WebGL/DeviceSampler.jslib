@@ -48,5 +48,25 @@ mergeInto(LibraryManager.library, {
   DS_IsTouchDevice: function () {
     try { return (navigator.maxTouchPoints || 0) > 0 ? 1 : 0; }
     catch (e) { return 0; }
+  },
+
+  BenignoGL_SetGameplayPointerMode: function (isEnabled) {
+    if (typeof window !== "undefined" && typeof window.BenignoGLSetGameplayPointerMode === "function") {
+      window.BenignoGLSetGameplayPointerMode(isEnabled === 1);
+    }
+  },
+
+  BenignoGL_SetGameplaySceneReady: function (isReady) {
+    if (typeof window !== "undefined" && typeof window.BenignoGLSetGameplaySceneReady === "function") {
+      window.BenignoGLSetGameplaySceneReady(isReady === 1);
+    }
+  },
+
+  BenignoGL_IsGameplayFocused: function () {
+    if (typeof window !== "undefined" && typeof window.BenignoGLIsGameplayFocused === "function") {
+      return window.BenignoGLIsGameplayFocused() ? 1 : 0;
+    }
+
+    return 1;
   }
 });

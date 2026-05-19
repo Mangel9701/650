@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <title>ArchViz|{{{ COMPANY_NAME }}}|{{{ PRODUCT_NAME }}}</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      #orientation-lock {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.92);
+        color: #fff;
+        text-align: center;
+        z-index: 9999;
+        font-family: Arial, sans-serif;
+      }
+
+      #orientation-lock.is-visible {
+        display: flex;
+      }
+
+      #orientation-lock-message {
+        max-width: 280px;
+      }
+
+      #orientation-lock-icon {
+        display: block;
+        font-size: 20px;
+        letter-spacing: 0.2em;
+        margin-bottom: 16px;
+      }
+
+      #unity-play-prompt {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+
+      #unity-play-prompt.is-visible {
+        display: flex;
+      }
+
+      #unity-play-prompt span {
+        display: inline-block;
+        padding: 18px 28px;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.72);
+        border-radius: 8px;
+        font-size: 22px;
+        line-height: 1.2;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="orientation-lock" aria-live="polite" aria-hidden="true">
+      <div id="orientation-lock-message">
+        <span id="orientation-lock-icon">LANDSCAPE</span>
+        <strong>Gira tu dispositivo</strong>
+        <p>Esta experiencia solo esta disponible en modo horizontal.</p>
+      </div>
+    </div>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">650</div>
+      </div>
+      <div id="unity-play-prompt" role="button" tabindex="0" aria-hidden="true">
+        <span>haz click aquí para jugar</span>
+      </div>
+    </div>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      var unityContainer = document.querySelector("#unity-container");
+      var orientationLock = document.querySelector("#orientation-lock");
+      var playPrompt = document.querySelector("#unity-play-prompt");
+      var unityInstanceRef = null;
+      var unityHasLoaded = false;
+      var gameplayPointerMode = false;
+      var gameplaySceneReady = false;
+      var benignoGLAudioContexts = [];
+      var pointerLockRequestApprovedUntil = 0;
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      function installAudioUnlock() {
+        var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextCtor || AudioContextCtor.__benignoGLWrapped) {
+          return;
+        }
+
+        function WrappedAudioContext() {
+          var context = new AudioContextCtor(...arguments);
+          benignoGLAudioContexts.push(context);
+          return context;
+        }
+
+        WrappedAudioContext.prototype = AudioContextCtor.prototype;
+        Object.setPrototypeOf(WrappedAudioContext, AudioContextCtor);
+        WrappedAudioContext.__benignoGLWrapped = true;
+
+        if (window.AudioContext) {
+          window.AudioContext = WrappedAudioContext;
+        }
+
+        if (window.webkitAudioContext) {
+          window.webkitAudioContext = WrappedAudioContext;
+        }
+      }
+
+      function unlockAudioContexts() {
+        benignoGLAudioContexts.forEach(function(context) {
+          if (context && context.state === "suspended" && context.resume) {
+            context.resume().catch(function() {});
+          }
+        });
+      }
+
+      var buildUrl = "Build";
+      var buildVersion = [
+        {{{ JSON.stringify(PRODUCT_VERSION) }}},
+        "benignogl",
+        encodeURIComponent(document.lastModified || "runtime")
+      ].join("-");
+      var buildVersionQuery = "?v=" + buildVersion;
+      var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}" + buildVersionQuery;
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}" + buildVersionQuery,
+        frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}" + buildVersionQuery,
+        codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}" + buildVersionQuery,
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+        productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+        productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+        showBanner: unityShowBanner,
+        autoSyncPersistentDataPath: true,
+        // errorHandler: function(err, url, line) {
+        //    alert("error " + err + " occurred at line " + line);
+        //    // Return 'true' if you handled this error and don't want Unity
+        //    // to process it further, 'false' otherwise.
+        //    return true;
+        // },
+      };
+
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
+
+      function isIPad() {
+        var ua = navigator.userAgent || "";
+        var isOldiPad = /iPad/i.test(ua);
+        var isNewiPadOS = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+        return isOldiPad || isNewiPadOS;
+      }
+
+      function isAnyMobile() {
+        var ua = navigator.userAgent || "";
+        var uaSaysMobile = /Android|iPhone|iPod/i.test(ua) || isIPad();
+        var coarsePointer = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+        return uaSaysMobile || coarsePointer;
+      }
+
+      function applyOrientationLock() {
+        if (!isAnyMobile()) {
+          orientationLock.classList.remove("is-visible");
+          orientationLock.setAttribute("aria-hidden", "true");
+          unityContainer.style.visibility = "visible";
+          updatePlayPrompt();
+          return;
+        }
+
+        var isLandscape = window.innerWidth > window.innerHeight;
+        orientationLock.classList.toggle("is-visible", !isLandscape);
+        orientationLock.setAttribute("aria-hidden", isLandscape ? "true" : "false");
+        unityContainer.style.visibility = isLandscape ? "visible" : "hidden";
+        updatePlayPrompt();
+      }
+
+      function isDesktopPlayPromptEnabled() {
+        return !isAnyMobile();
+      }
+
+      function isPointerCaptureActive() {
+        return document.hasFocus() && document.pointerLockElement === canvas;
+      }
+
+      function isPlayPromptVisible() {
+        return playPrompt.classList.contains("is-visible");
+      }
+
+      function updatePlayPromptBounds() {
+        if (!playPrompt) {
+          return;
+        }
+
+        var canvasRect = canvas.getBoundingClientRect();
+        var containerRect = unityContainer.getBoundingClientRect();
+        playPrompt.style.left = (canvasRect.left - containerRect.left) + "px";
+        playPrompt.style.top = (canvasRect.top - containerRect.top) + "px";
+        playPrompt.style.width = canvasRect.width + "px";
+        playPrompt.style.height = canvasRect.height + "px";
+      }
+
+      function updatePlayPrompt() {
+        if (!playPrompt) {
+          return;
+        }
+
+        updatePlayPromptBounds();
+
+        var orientationIsBlocking = orientationLock.classList.contains("is-visible");
+        var shouldShow = unityHasLoaded
+          && isDesktopPlayPromptEnabled()
+          && gameplayPointerMode
+          && gameplaySceneReady
+          && !orientationIsBlocking
+          && !isPointerCaptureActive();
+        playPrompt.classList.toggle("is-visible", shouldShow);
+        playPrompt.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+      }
+
+      window.BenignoGLSetGameplayPointerMode = function(isEnabled) {
+        gameplayPointerMode = !!isEnabled;
+        updatePlayPrompt();
+      };
+
+      window.BenignoGLSetGameplaySceneReady = function(isReady) {
+        gameplaySceneReady = !!isReady;
+        updatePlayPrompt();
+      };
+
+      window.BenignoGLIsGameplayFocused = function() {
+        return isPointerCaptureActive();
+      };
+
+      function focusCanvas() {
+        if (canvas.focus) {
+          canvas.focus({ preventScroll: true });
+        }
+      }
+
+      function requestPlayMode(event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        unlockAudioContexts();
+        focusCanvas();
+        playPrompt.classList.remove("is-visible");
+        playPrompt.setAttribute("aria-hidden", "true");
+
+        if (isDesktopPlayPromptEnabled() && canvas.requestPointerLock && document.pointerLockElement !== canvas) {
+          pointerLockRequestApprovedUntil = Date.now() + 1500;
+          canvas.requestPointerLock();
+        }
+
+        window.setTimeout(updatePlayPrompt, 350);
+      }
+
+      function handlePointerLockChange() {
+        if (document.pointerLockElement === canvas && Date.now() > pointerLockRequestApprovedUntil) {
+          document.exitPointerLock();
+          window.setTimeout(updatePlayPrompt, 0);
+          return;
+        }
+
+        updatePlayPrompt();
+      }
+
+      installAudioUnlock();
+
+      async function tryLockLandscape() {
+        if (!isAnyMobile() || !screen.orientation || !screen.orientation.lock) {
+          return;
+        }
+
+        try {
+          await screen.orientation.lock("landscape");
+        } catch (error) {
+          // Safari and some mobile browsers ignore orientation locking outside fullscreen/PWA.
+        }
+      }
+
+      if (isAnyMobile()) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      window.addEventListener("load", function() {
+        applyOrientationLock();
+        tryLockLandscape();
+      });
+      window.addEventListener("resize", applyOrientationLock);
+      window.addEventListener("orientationchange", function() {
+        setTimeout(applyOrientationLock, 150);
+        tryLockLandscape();
+      });
+      document.addEventListener("fullscreenchange", updatePlayPrompt);
+      document.addEventListener("pointerlockchange", handlePointerLockChange);
+      document.addEventListener("visibilitychange", updatePlayPrompt);
+      window.addEventListener("blur", updatePlayPrompt);
+      window.addEventListener("focus", updatePlayPrompt);
+      unityContainer.addEventListener("mouseleave", updatePlayPrompt);
+      unityContainer.addEventListener("mouseenter", updatePlayPrompt);
+      document.addEventListener("keyup", function(event) {
+        if (event.key === "Escape") {
+          window.setTimeout(updatePlayPrompt, 0);
+        }
+      });
+      playPrompt.addEventListener("pointerdown", requestPlayMode);
+      playPrompt.addEventListener("click", function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      canvas.addEventListener("pointerdown", unlockAudioContexts);
+      document.addEventListener("keydown", unlockAudioContexts);
+      playPrompt.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          requestPlayMode();
+        }
+      });
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                unityInstanceRef = unityInstance;
+                unityHasLoaded = true;
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+                updatePlayPrompt();
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+  </body>
+</html>

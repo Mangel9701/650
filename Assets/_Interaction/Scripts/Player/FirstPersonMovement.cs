@@ -51,6 +51,15 @@ public class FirstPersonMovement : MonoBehaviour
 
     void Update()
     {
+        if (ShouldPauseForWebFocus())
+        {
+            moveInput = Vector2.zero;
+            lookInput = Vector2.zero;
+            currentVelocity = Vector3.zero;
+            controller.Move(new Vector3(0, -0.1f, 0));
+            return;
+        }
+
         if (!isInteracting)
         {
             HandleMovement();
@@ -109,13 +118,33 @@ public class FirstPersonMovement : MonoBehaviour
         }
     }
 
+    private bool ShouldPauseForWebFocus()
+    {
+        return !isMobile
+            && !isInteracting
+            && !usePointerLook
+            && !BenignoGLWebBridge.IsGameplayFocused();
+    }
+
     private void OnMove(InputAction.CallbackContext context)
     {
+        if (ShouldPauseForWebFocus())
+        {
+            moveInput = Vector2.zero;
+            return;
+        }
+
         moveInput = context.ReadValue<Vector2>();
     }
 
     private void OnLook(InputAction.CallbackContext context)
     {
+        if (ShouldPauseForWebFocus())
+        {
+            lookInput = Vector2.zero;
+            return;
+        }
+
         lookInput = context.ReadValue<Vector2>();
     }
 
@@ -218,12 +247,14 @@ public class FirstPersonMovement : MonoBehaviour
 
         if (usePointerLook)
         {
+            BenignoGLWebBridge.SetGameplayPointerMode(false);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             lookInput = Vector2.zero;
         }
         else
         {
+            BenignoGLWebBridge.SetGameplayPointerMode(true);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }

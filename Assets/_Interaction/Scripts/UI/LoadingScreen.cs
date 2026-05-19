@@ -66,6 +66,7 @@ public class LoadingScreen : MonoBehaviour
     private IEnumerator LoadSceneAfterSubScenes()
     {
         IsSceneReady = false;
+        BenignoGLSceneState.UpdateSceneReadyState();
         Debug.Log("Cargando escena base...");
 
         yield return Resources.UnloadUnusedAssets();
@@ -109,6 +110,7 @@ public class LoadingScreen : MonoBehaviour
 
             yield return new WaitUntil(() => _isAnimationEnded);
             IsSceneReady = true;
+            BenignoGLSceneState.UpdateSceneReadyState();
             Debug.Log("Escena lista. Cerrando loading screen.");
             Destroy(gameObject);
             yield break;
@@ -140,6 +142,7 @@ public class LoadingScreen : MonoBehaviour
             yield return new WaitUntil(() => sceneIsReady || textPercentage.text == "100%");
 
             IsSceneReady = true;
+            BenignoGLSceneState.UpdateSceneReadyState();
             Debug.Log("Sub‑escenas listas. Cerrando loading screen.");
             Destroy(gameObject);
 

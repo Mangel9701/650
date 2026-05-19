@@ -257,6 +257,7 @@ public class UIManager : MonoBehaviour
         {
                 firstPerson.isInteracting = true;
         }
+        BenignoGLWebBridge.SetGameplayPointerMode(false);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -267,6 +268,7 @@ public class UIManager : MonoBehaviour
         if (firstPerson != null){
               firstPerson.isInteracting = false;
         }
+        BenignoGLWebBridge.SetGameplayPointerMode(true);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
