@@ -1291,6 +1291,7 @@ GameObject:
   - component: {fileID: 552423233806975138}
   - component: {fileID: 6234244367887375023}
   - component: {fileID: 955301752633459003}
+  - component: {fileID: 781234650000000001}
   m_Layer: 5
   m_Name: Panel_Calculadora
   m_TagString: Untagged
@@ -1359,6 +1360,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &781234650000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2971506335098794191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0d0b4b4f3c24e2b8e3f2b1e9b8c6505, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rowsRoot: {fileID: 0}
+  rowTemplate: {fileID: 0}
+  totalText: {fileID: 0}
+  zeroPriceText: Incluido
 --- !u!1 &3259970594198345804
 GameObject:
   m_ObjectHideFlags: 0

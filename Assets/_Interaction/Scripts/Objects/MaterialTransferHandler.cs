@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using System;
 
 namespace InteractionSystem
 {
@@ -27,6 +28,7 @@ namespace InteractionSystem
 
         [Header("Eventos")]
         public UnityEvent onTransferComplete;
+        public static event Action<MaterialTransferHandler> AnyTransferComplete;
 
         public Material CurrentSourceMaterial
         {
@@ -86,6 +88,8 @@ namespace InteractionSystem
             }
 
             onTransferComplete?.Invoke();
+            AnyTransferComplete?.Invoke(this);
+            Studio650.Budget.BudgetMaterialTransferBridge.NotifyTransfer(this);
         }
 
         private void PerformTransfer(MeshRenderer target, int index, Material mat)

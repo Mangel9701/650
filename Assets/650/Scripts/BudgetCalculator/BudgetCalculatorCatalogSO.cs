@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     [CreateAssetMenu(fileName = "BudgetCalculatorCatalog", menuName = "650/Budget/Calculator Catalog")]
     public class BudgetCalculatorCatalogSO : ScriptableObject
     {

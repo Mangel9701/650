@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     public class BudgetCalculatorManager : MonoBehaviour
     {
         private const string DefaultCatalogResourcePath = "Budget/BudgetCalculatorCatalog";

@@ -384,7 +384,13 @@
         event.preventDefault();
         event.stopPropagation();
       });
-      canvas.addEventListener("pointerdown", unlockAudioContexts);
+      canvas.addEventListener("pointerdown", function(event) {
+        unlockAudioContexts();
+
+        if (gameplayPointerMode && gameplaySceneReady && !isPointerCaptureActive()) {
+          requestPlayMode(event);
+        }
+      });
       document.addEventListener("keydown", unlockAudioContexts);
       playPrompt.addEventListener("keydown", function(event) {
         if (event.key === "Enter" || event.key === " ") {
@@ -402,8 +408,10 @@
                 unityInstanceRef = unityInstance;
                 unityHasLoaded = true;
                 document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                document.querySelector("#unity-fullscreen-button").onclick = (event) => {
                   unityInstance.SetFullscreen(1);
+                  requestPlayMode(event);
+                  window.setTimeout(updatePlayPrompt, 500);
                 };
                 updatePlayPrompt();
 

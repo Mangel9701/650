@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     public class BudgetCalculatorUI : MonoBehaviour
     {
         [Header("Referencias")]

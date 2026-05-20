@@ -1,0 +1,15 @@
+<linker>
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="Studio650.Budget.BudgetCalculatorBootstrap" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetCalculatorManager" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetCalculatorPanelBinder" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetCalculatorUI" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetMaterialRowUI" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetMaterialTransferBridge" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetInteractionMaterialListener" preserve="all" />
+    <type fullname="Studio650.Budget.MaterialCostOption" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetCalculatorCatalogSO" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetMaterialOptionSO" preserve="all" />
+    <type fullname="Studio650.Budget.BudgetMaterialSelection" preserve="all" />
+  </assembly>
+</linker>

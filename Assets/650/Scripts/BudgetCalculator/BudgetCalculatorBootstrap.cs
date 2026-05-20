@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     public static class BudgetCalculatorBootstrap
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -11,9 +13,8 @@ namespace Studio650.Budget
             if (manager.GetComponent<BudgetInteractionMaterialListener>() == null)
                 manager.gameObject.AddComponent<BudgetInteractionMaterialListener>();
 
-            var panel = GameObject.Find("Panel_Calculadora") ?? GameObject.Find("Panel Calculadora");
-            if (panel != null && panel.GetComponent<BudgetCalculatorUI>() == null)
-                panel.AddComponent<BudgetCalculatorUI>();
+            if (manager.GetComponent<BudgetCalculatorPanelBinder>() == null)
+                manager.gameObject.AddComponent<BudgetCalculatorPanelBinder>();
         }
     }
 }

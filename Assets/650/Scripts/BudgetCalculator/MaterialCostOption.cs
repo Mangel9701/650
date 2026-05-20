@@ -1,8 +1,10 @@
 using InteractionSystem;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     [DisallowMultipleComponent]
     public class MaterialCostOption : MonoBehaviour
     {

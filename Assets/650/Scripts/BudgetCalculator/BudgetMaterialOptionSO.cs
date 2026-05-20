@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     [CreateAssetMenu(fileName = "BudgetMaterialOption", menuName = "650/Budget/Material Option")]
     public class BudgetMaterialOptionSO : ScriptableObject
     {

@@ -1,9 +1,11 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting;
 using UnityEngine.UI;
 
 namespace Studio650.Budget
 {
+    [Preserve]
     public class BudgetMaterialRowUI : MonoBehaviour
     {
         private const float PreferredHeight = 62f;
