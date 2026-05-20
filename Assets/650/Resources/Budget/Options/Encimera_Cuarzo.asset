@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0d0b4b4f3c24e2b8e3f2b1e9b8c6501, type: 3}
+  m_Name: Encimera_Cuarzo
+  m_EditorClassIdentifier: 
+  categoryId: encimera
+  categoryDisplayName: Encimera
+  categoryOrder: 2
+  material: {fileID: 2100000, guid: bef54ccd6912eea48913c6c891ae6d00, type: 2}
+  technicalMaterialName: M_Calacatta_Gray
+  displayName: Cuarzo
+  description: Superficie premium tipo cuarzo
+  priceEuros: 850
+  defaultOption: 0

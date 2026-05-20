@@ -28,6 +28,23 @@ namespace InteractionSystem
         [Header("Eventos")]
         public UnityEvent onTransferComplete;
 
+        public Material CurrentSourceMaterial
+        {
+            get
+            {
+                if (sourceRenderer == null)
+                    return null;
+
+                Material[] sourceMaterials = sourceRenderer.materials;
+                if (sourceMaterialIndex < 0 || sourceMaterialIndex >= sourceMaterials.Length)
+                    return null;
+
+                return sourceMaterials[sourceMaterialIndex];
+            }
+        }
+
+        public string CurrentSourceMaterialName => CurrentSourceMaterial != null ? CurrentSourceMaterial.name : string.Empty;
+
         private void Awake()
         {
             if (sourceRenderer == null)
