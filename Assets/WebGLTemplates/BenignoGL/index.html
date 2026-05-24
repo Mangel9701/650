@@ -101,7 +101,6 @@
       var gameplayPointerMode = false;
       var gameplaySceneReady = false;
       var benignoGLAudioContexts = [];
-      var pointerLockRequestApprovedUntil = 0;
 
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
@@ -309,7 +308,6 @@
         playPrompt.setAttribute("aria-hidden", "true");
 
         if (isDesktopPlayPromptEnabled() && canvas.requestPointerLock && document.pointerLockElement !== canvas) {
-          pointerLockRequestApprovedUntil = Date.now() + 1500;
           canvas.requestPointerLock();
         }
 
@@ -317,7 +315,7 @@
       }
 
       function handlePointerLockChange() {
-        if (document.pointerLockElement === canvas && Date.now() > pointerLockRequestApprovedUntil) {
+        if (document.pointerLockElement === canvas && (!gameplayPointerMode || !gameplaySceneReady)) {
           document.exitPointerLock();
           window.setTimeout(updatePlayPrompt, 0);
           return;
