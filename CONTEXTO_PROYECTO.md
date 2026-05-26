@@ -51,4 +51,5 @@ https://html.spec.whatwg.org/multipage/
 3. Verificar compilación/consola.
 4. Verificar visualmente si el cambio afecta escena, prefabs o UI.
 5. Documentar cualquier conexión manual necesaria dentro del editor.
+6. Al momento de ejecutar una build no necesito una descripción de cada paso si generas un schedule build check a menos que aparezca un error.
 

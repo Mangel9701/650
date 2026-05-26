@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 using Unity.Cinemachine;
@@ -56,11 +56,27 @@ public class FirstPersonMovement : MonoBehaviour
             moveInput = Vector2.zero;
             lookInput = Vector2.zero;
             currentVelocity = Vector3.zero;
+
+            if (Cursor.lockState != CursorLockMode.None)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+
             controller.Move(new Vector3(0, -0.1f, 0));
             return;
         }
 
-        if (!isInteracting)
+        if (isInteracting)
+        {
+            if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                BenignoGLWebBridge.SetGameplayPointerMode(false);
+            }
+        }
+        else
         {
             HandleMovement();
 
