@@ -9,13 +9,13 @@ EditorBuildSettings:
     path: Assets/650/Scenes/650-MenuInicial.unity
     guid: 62e728e3c7a23b641b81130f9d9356c9
   - enabled: 0
-    path: Assets/650/Scenes/650-Interaccion.unity
+    path: Assets/650/Scenes/Sala/650-Interaccion.unity
     guid: 71ba721252b09ed48911193e8109413f
   - enabled: 0
-    path: Assets/650/Scenes/650-PB.unity
+    path: Assets/650/Scenes/Sala/650-PB.unity
     guid: cde5da13572ed334da3040ad51646db2
   - enabled: 0
-    path: Assets/650/Scenes/650-Geo.unity
+    path: Assets/650/Scenes/Sala/650-Geo.unity
     guid: 8af3775ee2b696a4196a6791c5abd842
   - enabled: 1
     path: Assets/_Interaction/Scenes/LoadingScreen.unity
