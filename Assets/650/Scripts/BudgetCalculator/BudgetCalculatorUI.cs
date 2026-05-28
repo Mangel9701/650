@@ -37,19 +37,13 @@ namespace Studio650.Budget
             manager.SelectionChanged += Refresh;
             Refresh(manager.GetCurrentSelections(), manager.GetTotalEuros());
 
-            if (uiManager == null)
-                uiManager = Object.FindFirstObjectByType<UIManager>();
+            EnableUiCursor();
+        }
 
-            if (uiManager != null)
-            {
-                uiManager.showCursor();
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-                BenignoGLWebBridge.SetGameplayPointerMode(false);
-            }
+        private void LateUpdate()
+        {
+            if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
+                EnableUiCursor();
         }
 
         private void OnDisable()
@@ -57,35 +51,58 @@ namespace Studio650.Budget
             if (manager != null)
                 manager.SelectionChanged -= Refresh;
 
-            if (uiManager == null)
-                uiManager = Object.FindFirstObjectByType<UIManager>();
+            RestoreGameplayCursor();
+        }
 
+        private void EnableUiCursor()
+        {
+            ResolveUiManager();
             if (uiManager != null)
             {
                 if (uiManager.firstPerson != null)
                 {
-                    uiManager.firstPerson.isInteracting = false;
+                    uiManager.firstPerson.isInteracting = true;
                 }
 
-#if UNITY_WEBGL && !UNITY_EDITOR
-                BenignoGLWebBridge.SetGameplayPointerMode(true);
+                BenignoGLWebBridge.SetGameplayPointerMode(false);
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
+                return;
+            }
+
+            BenignoGLWebBridge.SetGameplayPointerMode(false);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        private void RestoreGameplayCursor()
+        {
+            ResolveUiManager();
+
+            if (uiManager != null && uiManager.firstPerson != null)
+                uiManager.firstPerson.isInteracting = false;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            BenignoGLWebBridge.SetGameplayPointerMode(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
 #else
+            if (uiManager != null)
+            {
                 uiManager.hideCursor();
-#endif
             }
             else
             {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                BenignoGLWebBridge.SetGameplayPointerMode(true);
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-#else
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
-#endif
             }
+#endif
+        }
+
+        private void ResolveUiManager()
+        {
+            if (uiManager == null)
+                uiManager = Object.FindFirstObjectByType<UIManager>();
         }
 
         private void Refresh(IReadOnlyList<BudgetMaterialSelection> selections, int totalEuros)

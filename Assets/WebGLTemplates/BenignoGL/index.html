@@ -278,11 +278,17 @@
 
       window.BenignoGLSetGameplayPointerMode = function(isEnabled) {
         gameplayPointerMode = !!isEnabled;
+        if (!gameplayPointerMode) {
+          releasePointerCapture();
+        }
         updatePlayPrompt();
       };
 
       window.BenignoGLSetGameplaySceneReady = function(isReady) {
         gameplaySceneReady = !!isReady;
+        if (!gameplaySceneReady) {
+          releasePointerCapture();
+        }
         updatePlayPrompt();
       };
 
@@ -293,6 +299,18 @@
       function focusCanvas() {
         if (canvas.focus) {
           canvas.focus({ preventScroll: true });
+        }
+      }
+
+      function releasePointerCapture() {
+        if (document.pointerLockElement !== canvas || !document.exitPointerLock) {
+          return;
+        }
+
+        try {
+          document.exitPointerLock();
+        } catch (error) {
+          window.setTimeout(updatePlayPrompt, 0);
         }
       }
 
