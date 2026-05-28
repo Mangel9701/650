@@ -20,11 +20,13 @@ namespace Studio650.Budget
 
         private readonly List<BudgetMaterialRowUI> rows = new List<BudgetMaterialRowUI>();
         private BudgetCalculatorManager manager;
+        private UIManager uiManager;
 
         private void Awake()
         {
             AutoWireMissingReferences();
             manager = BudgetCalculatorManager.GetOrCreate();
+            uiManager = Object.FindFirstObjectByType<UIManager>();
         }
 
         private void OnEnable()
@@ -34,12 +36,56 @@ namespace Studio650.Budget
 
             manager.SelectionChanged += Refresh;
             Refresh(manager.GetCurrentSelections(), manager.GetTotalEuros());
+
+            if (uiManager == null)
+                uiManager = Object.FindFirstObjectByType<UIManager>();
+
+            if (uiManager != null)
+            {
+                uiManager.showCursor();
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                BenignoGLWebBridge.SetGameplayPointerMode(false);
+            }
         }
 
         private void OnDisable()
         {
             if (manager != null)
                 manager.SelectionChanged -= Refresh;
+
+            if (uiManager == null)
+                uiManager = Object.FindFirstObjectByType<UIManager>();
+
+            if (uiManager != null)
+            {
+                if (uiManager.firstPerson != null)
+                {
+                    uiManager.firstPerson.isInteracting = false;
+                }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+                BenignoGLWebBridge.SetGameplayPointerMode(true);
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+#else
+                uiManager.hideCursor();
+#endif
+            }
+            else
+            {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                BenignoGLWebBridge.SetGameplayPointerMode(true);
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+#else
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+#endif
+            }
         }
 
         private void Refresh(IReadOnlyList<BudgetMaterialSelection> selections, int totalEuros)
