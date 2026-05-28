@@ -42,8 +42,7 @@ public class FirstPersonMovement : MonoBehaviour
 
     void Start()
     {
-        controller = GetComponent<CharacterController>();
-        cameraHolder = virtualCamera.transform;
+        EnsureReferences();
         isMobile = DeviceDetector.Instance.IsMobile;
 
         ApplyPointerMode();
@@ -180,6 +179,58 @@ public class FirstPersonMovement : MonoBehaviour
     {
         usePointerLook = value;
         ApplyPointerMode();
+    }
+
+    public void TeleportTo(Transform target)
+    {
+        if (target == null) return;
+
+        EnsureReferences();
+
+        bool controllerWasEnabled = controller != null && controller.enabled;
+        if (controller != null)
+            controller.enabled = false;
+
+        Quaternion bodyRotation = Quaternion.Euler(0f, target.eulerAngles.y, 0f);
+        transform.SetPositionAndRotation(target.position, bodyRotation);
+
+        SetCameraPitch(target.eulerAngles.x);
+        ResetMovementState();
+
+        if (controller != null)
+            controller.enabled = controllerWasEnabled;
+    }
+
+    public void ResetMovementState()
+    {
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        currentVelocity = Vector3.zero;
+    }
+
+    private void EnsureReferences()
+    {
+        if (controller == null)
+            controller = GetComponent<CharacterController>();
+
+        if (cameraHolder == null && virtualCamera != null)
+            cameraHolder = virtualCamera.transform;
+    }
+
+    private void SetCameraPitch(float pitch)
+    {
+        xRotation = NormalizePitch(pitch);
+
+        if (cameraHolder != null)
+            cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
+
+    private float NormalizePitch(float pitch)
+    {
+        if (pitch > 180f)
+            pitch -= 360f;
+
+        return Mathf.Clamp(pitch, -90f, 90f);
     }
 
     private IEnumerator SmoothCameraMove(Transform targetPivot)

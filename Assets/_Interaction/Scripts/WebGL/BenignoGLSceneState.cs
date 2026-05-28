@@ -3,9 +3,7 @@ using UnityEngine.SceneManagement;
 
 public static class BenignoGLSceneState
 {
-    private const string MainScene = "650-Interaccion";
-    private const string PbScene = "650-PB";
-    private const string GeoScene = "650-Geo";
+    private const string LoadingScene = "LoadingScreen";
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize()
@@ -38,16 +36,46 @@ public static class BenignoGLSceneState
 
     public static void UpdateSceneReadyState()
     {
-        BenignoGLWebBridge.SetGameplaySceneReady(
-            IsSceneLoaded(MainScene) &&
-            IsSceneLoaded(PbScene) &&
-            IsSceneLoaded(GeoScene) &&
-            IsLoadingScreenReady());
+        BenignoGLWebBridge.SetGameplaySceneReady(IsGameplaySceneReady());
+    }
+
+    private static bool IsGameplaySceneReady()
+    {
+        if (!IsLoadingScreenReady())
+            return false;
+
+        AdditiveSceneLoader additiveLoader = Object.FindFirstObjectByType<AdditiveSceneLoader>();
+        if (additiveLoader == null)
+            return IsAnyNonLoadingSceneLoaded();
+
+        if (!additiveLoader.IsDone)
+            return false;
+
+        foreach (string subSceneKey in additiveLoader.subSceneKeys)
+        {
+            if (!IsSceneLoaded(subSceneKey))
+                return false;
+        }
+
+        return true;
     }
 
     private static bool IsLoadingScreenReady()
     {
-        return Object.FindFirstObjectByType<LoadingScreen>() == null || LoadingScreen.IsSceneReady;
+        LoadingScreen loadingScreen = Object.FindFirstObjectByType<LoadingScreen>();
+        return loadingScreen == null || LoadingScreen.IsSceneReady;
+    }
+
+    private static bool IsAnyNonLoadingSceneLoaded()
+    {
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene scene = SceneManager.GetSceneAt(i);
+            if (scene.isLoaded && scene.name != LoadingScene)
+                return true;
+        }
+
+        return false;
     }
 
     private static bool IsSceneLoaded(string sceneName)

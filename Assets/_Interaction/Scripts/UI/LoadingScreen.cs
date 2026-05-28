@@ -31,7 +31,7 @@ public class LoadingScreen : MonoBehaviour
 
     void Awake()
     {
-        sceneAddress = DoorManager.Instance.GetAdressableAdress();
+        sceneAddress = DoorManager.EnsureInstance().GetAdressableAdress();
 
         if (_instance != null && _instance != this)
         {
@@ -66,8 +66,15 @@ public class LoadingScreen : MonoBehaviour
     private IEnumerator LoadSceneAfterSubScenes()
     {
         IsSceneReady = false;
+        SceneLoadingTracker.ResetLoadingState();
         BenignoGLSceneState.UpdateSceneReadyState();
         Debug.Log("Cargando escena base...");
+
+        if (string.IsNullOrWhiteSpace(sceneAddress))
+        {
+            Debug.LogError("[LoadingScreen] No hay una escena Addressable pendiente para cargar.");
+            yield break;
+        }
 
         yield return Resources.UnloadUnusedAssets();
         System.GC.Collect();

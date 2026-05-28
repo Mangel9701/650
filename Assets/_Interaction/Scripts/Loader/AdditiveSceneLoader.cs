@@ -22,6 +22,9 @@ public class AdditiveSceneLoader : MonoBehaviour
 
     void Start()
     {
+        IsDone = false;
+        AllScenesLoaded = false;
+        Progress = 0f;
         totalSubScenes = subSceneKeys != null ? subSceneKeys.Count : 0;
         StartCoroutine(LoadSubScenesSequentially());
     }

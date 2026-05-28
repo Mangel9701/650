@@ -6,6 +6,12 @@ public static class SceneLoadingTracker
     public static Action OnSceneCompletelyReady;
     public static bool IsSceneReady { get; private set; }
 
+    public static void ResetLoadingState()
+    {
+        IsSceneReady = false;
+        OnSceneCompletelyReady = null;
+    }
+
     public static void NotifyLoadingComplete()
     {
         Debug.Log("Propagando la carga de escenas.");
