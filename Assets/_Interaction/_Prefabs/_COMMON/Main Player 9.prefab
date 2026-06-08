@@ -487,7 +487,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alternateLookSpeed: 100
-  usePointerLook: 1
+  usePointerLook: 0
   moveSpeed: 5
   acceleration: 30
   mouseSensitivity: 0.1

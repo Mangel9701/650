@@ -91,12 +91,12 @@ public class Interact : MonoBehaviour
             if ((hitLayerMask & layerItem) != 0)
             {
                 var interactObject = hit.collider.GetComponent<InteractObject>();
-                if (interactObject != null && interactObject.stopPlayerMovementOnInteract)
+                if (interactObject != null && interactObject.stopPlayerMovementOnInteract && firstPerson != null)
                 {
-                    firstPerson.isInteracting = true;
+                    firstPerson.SetInteracting(true);
                 }
 
-                interactObject.OnInteract();
+                interactObject?.OnInteract();
 
 
             }

@@ -61,7 +61,7 @@ namespace Studio650.Budget
             {
                 if (uiManager.firstPerson != null)
                 {
-                    uiManager.firstPerson.isInteracting = true;
+                    uiManager.firstPerson.SetInteracting(true);
                 }
 
                 BenignoGLWebBridge.SetGameplayPointerMode(false);
@@ -80,7 +80,7 @@ namespace Studio650.Budget
             ResolveUiManager();
 
             if (uiManager != null && uiManager.firstPerson != null)
-                uiManager.firstPerson.isInteracting = false;
+                uiManager.firstPerson.SetInteracting(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             BenignoGLWebBridge.SetGameplayPointerMode(true);

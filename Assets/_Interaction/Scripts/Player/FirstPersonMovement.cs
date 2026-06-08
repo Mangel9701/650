@@ -14,7 +14,8 @@ public class FirstPersonMovement : MonoBehaviour
 
     [Header("Opciones de entrada")]
     [SerializeField]
-    private bool usePointerLook = true;
+    private bool usePointerLook;
+    [SerializeField] private bool maintainEditorPointerLock = true;
 
     Vector2 moveInput;
     Vector2 lookInput;
@@ -39,17 +40,20 @@ public class FirstPersonMovement : MonoBehaviour
     private Vector3 currentVelocity;
 
     private bool isMobile;
+    private bool appliedInteractingState;
 
     void Start()
     {
         EnsureReferences();
-        isMobile = DeviceDetector.Instance.IsMobile;
+        isMobile = DeviceDetector.Instance != null && DeviceDetector.Instance.IsMobile;
 
-        ApplyPointerMode();
+        ApplyInteractionState(isInteracting);
     }
 
     void Update()
     {
+        SyncExternalInteractionState();
+
         if (ShouldPauseForWebFocus())
         {
             moveInput = Vector2.zero;
@@ -77,6 +81,7 @@ public class FirstPersonMovement : MonoBehaviour
         }
         else
         {
+            EnsureEditorPointerLock();
             HandleMovement();
 
             if (!usePointerLook)
@@ -91,6 +96,7 @@ public class FirstPersonMovement : MonoBehaviour
     private void Awake()
     {
         isInteracting = false;
+        appliedInteractingState = false;
         inputActions = new InputSystem_Actions();
     }
 
@@ -165,7 +171,7 @@ public class FirstPersonMovement : MonoBehaviour
 
     public void MoveCameraToTarget(Transform targetPivot)
     {
-        isInteracting = true;
+        SetInteracting(true);
 
         if (cameraMoveCoroutine != null)
         {
@@ -178,7 +184,20 @@ public class FirstPersonMovement : MonoBehaviour
     public void SetUsePointerLook(bool value)
     {
         usePointerLook = value;
-        ApplyPointerMode();
+
+        if (isInteracting)
+            ApplyInteractionCursorMode();
+        else
+            ApplyPointerMode();
+    }
+
+    public void SetInteracting(bool value)
+    {
+        if (isInteracting == value && appliedInteractingState == value)
+            return;
+
+        isInteracting = value;
+        ApplyInteractionState(value);
     }
 
     public void TeleportTo(Transform target)
@@ -283,7 +302,8 @@ public class FirstPersonMovement : MonoBehaviour
         {
             brain.enabled = true;
         }
-        isInteracting = false;
+
+        SetInteracting(false);
     }
 
     private void HandleMovement()
@@ -325,6 +345,45 @@ public class FirstPersonMovement : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    private void SyncExternalInteractionState()
+    {
+        if (appliedInteractingState == isInteracting)
+            return;
+
+        ApplyInteractionState(isInteracting);
+    }
+
+    private void ApplyInteractionState(bool value)
+    {
+        appliedInteractingState = value;
+        ResetMovementState();
+
+        if (value)
+            ApplyInteractionCursorMode();
+        else
+            ApplyPointerMode();
+    }
+
+    private void ApplyInteractionCursorMode()
+    {
+        if (isMobile) return;
+
+        BenignoGLWebBridge.SetGameplayPointerMode(false);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void EnsureEditorPointerLock()
+    {
+#if UNITY_EDITOR
+        if (!maintainEditorPointerLock || isMobile || usePointerLook)
+            return;
+
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible)
+            ApplyPointerMode();
+#endif
     }
 
     private void HandleKeyLook()

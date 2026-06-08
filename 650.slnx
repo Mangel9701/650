@@ -1,7 +1,10 @@
 ﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Splines.Examples.csproj" />
   <Project Path="Unity.Splines.Examples.Editor.csproj" />
-  <Project Path="SampleAssembly.csproj" />
+  <Project Path="OccaSoftware.AutoExposure.Runtime.csproj" />
+  <Project Path="OccaSoftware.AutoExposure.Editor.csproj" />
+  <Project Path="OccaSoftware.Exposure.Shaders.csproj" />
+  <Project Path="OccaSoftware.Exposure.Demo.csproj" />
 </Solution>

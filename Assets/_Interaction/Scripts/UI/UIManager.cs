@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine.EventSystems;
 public class UIManager : MonoBehaviour
 {
 
@@ -255,7 +256,8 @@ public class UIManager : MonoBehaviour
         Debug.Log("Cursor activado, player desactivado");
         if (firstPerson != null)
         {
-                firstPerson.isInteracting = true;
+            firstPerson.SetInteracting(true);
+            firstPerson.SetUsePointerLook(true);
         }
         BenignoGLWebBridge.SetGameplayPointerMode(false);
         Cursor.lockState = CursorLockMode.None;
@@ -265,11 +267,21 @@ public class UIManager : MonoBehaviour
     public void hideCursor()
     {
         Debug.Log("Cursor desactivado, player activado");
+        ClearSelectedUI();
+
         if (firstPerson != null){
-              firstPerson.isInteracting = false;
+            firstPerson.ResetMovementState();
+            firstPerson.SetInteracting(false);
+            firstPerson.SetUsePointerLook(false);
         }
         BenignoGLWebBridge.SetGameplayPointerMode(true);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    private void ClearSelectedUI()
+    {
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);
     }
 }
