@@ -1,0 +1,110 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6583901418285646583
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: stopPlayerMovementOnInteract
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 6857791959906100115}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: OpenPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: Studio650.ColorField.BaseColorFieldPanelOpener, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_Name
+      value: GenericInteraction_BaseColorField
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.79
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.23
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6857791959906100115}
+  m_SourcePrefab: {fileID: 100100000, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+--- !u!1 &3875250506809028857 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+  m_PrefabInstance: {fileID: 6583901418285646583}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6857791959906100115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3875250506809028857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7521c776d2aa4a141b788f5297214a57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Studio650.ColorField.BaseColorFieldPanelOpener
+  panelPrefab: {fileID: 96122880093408136, guid: 3fa99c40cb202134483776a3f468f3fb, type: 3}
+  targetCanvas: {fileID: 0}
+  panelParent: {fileID: 0}
+  reuseOpenPanel: 1
+  targetRenderer: {fileID: 0}
+  materialIndex: 0
+  colorPropertyName: _BaseColor
