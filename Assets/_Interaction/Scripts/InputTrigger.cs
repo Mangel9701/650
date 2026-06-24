@@ -7,6 +7,7 @@ public class InputTrigger : MonoBehaviour
     [Header("Configuraci\u00f3n")]
     [SerializeField] private InputActionReference actionReference;
     [SerializeField] private bool debugTrigger = false;
+    [SerializeField] private bool ignoreGameplayModalLock = false;
 
     [Header("Eventos")]
     public UnityEvent onTrigger;
@@ -33,6 +34,16 @@ public class InputTrigger : MonoBehaviour
         {
             if (actionReference.action.WasPerformedThisFrame())
             {
+                if (GameplayModalLock.IsLocked && !ignoreGameplayModalLock)
+                {
+                    if (debugTrigger)
+                    {
+                        Debug.Log($"[InputTrigger] Acci\u00f3n '{actionReference.action.name}' bloqueada por modal abierto.", this);
+                    }
+
+                    return;
+                }
+
                 if (debugTrigger)
                 {
                     Debug.Log($"[InputTrigger] Acci\u00f3n '{actionReference.action.name}' detectada.", this);

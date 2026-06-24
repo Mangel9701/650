@@ -34,7 +34,7 @@ namespace InteractionSystem
         {
             get
             {
-                if (sourceRenderer == null)
+                if (!TryResolveSourceRenderer())
                     return null;
 
                 Material[] sourceMaterials = sourceRenderer.materials;
@@ -46,11 +46,28 @@ namespace InteractionSystem
         }
 
         public string CurrentSourceMaterialName => CurrentSourceMaterial != null ? CurrentSourceMaterial.name : string.Empty;
+        public bool HasValidSource => TryResolveSourceRenderer() && IsMaterialIndexValid(sourceRenderer, sourceMaterialIndex);
+
+        public bool HasValidTargets
+        {
+            get
+            {
+                if (targets == null)
+                    return false;
+
+                foreach (TargetSettings target in targets)
+                {
+                    if (target.renderer != null && IsMaterialIndexValid(target.renderer, target.materialIndex))
+                        return true;
+                }
+
+                return false;
+            }
+        }
 
         private void Awake()
         {
-            if (sourceRenderer == null)
-                sourceRenderer = GetComponentInChildren<MeshRenderer>();
+            TryResolveSourceRenderer();
         }
 
         /// <summary>
@@ -122,5 +139,22 @@ namespace InteractionSystem
         /// Limpia la lista de objetivos.
         /// </summary>
         public void ClearTargets() => targets.Clear();
+
+        private bool TryResolveSourceRenderer()
+        {
+            if (sourceRenderer == null)
+                sourceRenderer = GetComponentInChildren<MeshRenderer>(true);
+
+            return sourceRenderer != null;
+        }
+
+        private static bool IsMaterialIndexValid(Renderer renderer, int materialIndex)
+        {
+            if (renderer == null)
+                return false;
+
+            Material[] materials = renderer.sharedMaterials;
+            return materialIndex >= 0 && materialIndex < materials.Length;
+        }
     }
 }

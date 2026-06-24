@@ -29,7 +29,7 @@ namespace Studio650.Budget
 
         private void HandleInteraction(InteractObject interactObject)
         {
-            if (interactObject == null || manager == null || manager.Catalog == null)
+            if (interactObject == null || manager == null)
                 return;
 
             var explicitOption = interactObject.GetComponentInChildren<MaterialCostOption>();
@@ -51,22 +51,10 @@ namespace Studio650.Budget
 
         private void HandleMaterialTransfer(MaterialTransferHandler transferHandler)
         {
-            if (transferHandler == null || manager == null || manager.Catalog == null)
+            if (transferHandler == null || manager == null)
                 return;
 
-            var explicitOption = transferHandler.GetComponent<MaterialCostOption>();
-            if (explicitOption == null)
-                explicitOption = transferHandler.GetComponentInParent<MaterialCostOption>();
-
-            if (explicitOption != null && explicitOption.Option != null)
-            {
-                explicitOption.NotifySelection();
-                return;
-            }
-
-            Material selectedMaterial = transferHandler.CurrentSourceMaterial;
-            BudgetMaterialOptionSO option = manager.Catalog.FindByMaterialName(transferHandler.CurrentSourceMaterialName);
-            if (option != null)
+            if (BudgetMaterialOptionResolver.TryResolve(transferHandler, manager.Catalog, out BudgetMaterialOptionSO option, out Material selectedMaterial))
                 manager.SetSelection(option, selectedMaterial);
         }
     }

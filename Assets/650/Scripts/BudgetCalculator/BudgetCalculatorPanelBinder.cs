@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Scripting;
+using System.Collections;
 
 namespace Studio650.Budget
 {
@@ -9,9 +10,13 @@ namespace Studio650.Budget
         private const float ScanInterval = 0.5f;
         private float nextScanTime;
 
-        private void Start()
+        private IEnumerator Start()
         {
+            yield return null;
+            yield return null;
+
             BindAvailablePanels();
+            nextScanTime = Time.unscaledTime + ScanInterval;
         }
 
         private void Update()
@@ -25,7 +30,7 @@ namespace Studio650.Budget
 
         private void BindAvailablePanels()
         {
-            var transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var transforms = FindObjectsByType<Transform>(FindObjectsInactive.Include);
             foreach (var candidate in transforms)
             {
                 if (!IsCalculatorPanel(candidate))

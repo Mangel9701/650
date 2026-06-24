@@ -78,16 +78,12 @@ public class FirstPersonMovement : MonoBehaviour
         SyncExternalInteractionState();
         HandleEditorTemplateInput();
 
-        bool pauseLookForWebFocus = ShouldPauseLookForWebFocus();
-        if (pauseLookForWebFocus)
+        bool pauseGameplayForWebFocus = ShouldPauseGameplayForWebFocus();
+        if (pauseGameplayForWebFocus)
         {
-            lookInput = Vector2.zero;
-
-            if (Cursor.lockState != CursorLockMode.None)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
+            PauseGameplayUntilCanvasFocus();
+            ApplyGrounding();
+            return;
         }
 
         bool allowEditorMovementWhileInteracting = ShouldAllowEditorKeyboardMovement();
@@ -110,7 +106,7 @@ public class FirstPersonMovement : MonoBehaviour
                 HandleMovement();
             }
 
-            if (!usePointerLook && (!pauseLookForWebFocus || allowEditorLookWhileInteracting))
+            if (!usePointerLook)
             {
                 HandleMouseLook();
             }
@@ -165,12 +161,25 @@ public class FirstPersonMovement : MonoBehaviour
         }
     }
 
-    private bool ShouldPauseLookForWebFocus()
+    private bool ShouldPauseGameplayForWebFocus()
     {
         return !isMobile
             && !isInteracting
             && !usePointerLook
             && !BenignoGLWebBridge.IsGameplayFocused();
+    }
+
+    private void PauseGameplayUntilCanvasFocus()
+    {
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        currentVelocity = Vector3.zero;
+
+        if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 
     private void OnMove(InputAction.CallbackContext context)
@@ -180,7 +189,7 @@ public class FirstPersonMovement : MonoBehaviour
 
     private void OnLook(InputAction.CallbackContext context)
     {
-        if (ShouldPauseLookForWebFocus())
+        if (ShouldPauseGameplayForWebFocus())
         {
             lookInput = Vector2.zero;
             return;

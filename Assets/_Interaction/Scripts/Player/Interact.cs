@@ -68,12 +68,24 @@ public class Interact : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
+        if (GameplayModalLock.IsLocked)
+        {
+            ClearInteractionState();
+            return;
+        }
+
         Debug.Log("Intentando interactuar...");
         TryInteract();
     }
 
     public void TryInteract()
     {
+        if (GameplayModalLock.IsLocked)
+        {
+            ClearInteractionState();
+            return;
+        }
+
         if (Camera.main == null) return;
 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
@@ -118,6 +130,12 @@ public class Interact : MonoBehaviour
 
     private void Update()
     {
+        if (GameplayModalLock.IsLocked)
+        {
+            ClearInteractionState();
+            return;
+        }
+
         if (Camera.main == null) return;
 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
@@ -187,6 +205,15 @@ public class Interact : MonoBehaviour
 
             //HideDebugLine(); 
         }
+    }
+
+    private void ClearInteractionState()
+    {
+        HidePrompt(true);
+        HidePrompt(false);
+        DestroyCurrentInstance();
+        wasLookingAtDoor = false;
+        lastSeenDoor = null;
     }
 
     private LineRenderer GetDebugLine()

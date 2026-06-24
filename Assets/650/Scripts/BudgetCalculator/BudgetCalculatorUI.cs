@@ -21,12 +21,15 @@ namespace Studio650.Budget
         private readonly List<BudgetMaterialRowUI> rows = new List<BudgetMaterialRowUI>();
         private BudgetCalculatorManager manager;
         private UIManager uiManager;
+        private bool suppressCursorOnCurrentEnable;
+        private bool ownsGameplayCursor;
 
         private void Awake()
         {
             AutoWireMissingReferences();
             manager = BudgetCalculatorManager.GetOrCreate();
             uiManager = Object.FindFirstObjectByType<UIManager>();
+            suppressCursorOnCurrentEnable = gameObject.activeInHierarchy;
         }
 
         private void OnEnable()
@@ -37,11 +40,22 @@ namespace Studio650.Budget
             manager.SelectionChanged += Refresh;
             Refresh(manager.GetCurrentSelections(), manager.GetTotalEuros());
 
-            EnableUiCursor();
+            if (suppressCursorOnCurrentEnable)
+            {
+                suppressCursorOnCurrentEnable = false;
+                ownsGameplayCursor = false;
+                return;
+            }
+
+            if (!EnableUiCursor())
+                gameObject.SetActive(false);
         }
 
         private void LateUpdate()
         {
+            if (!ownsGameplayCursor)
+                return;
+
             if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
                 EnableUiCursor();
         }
@@ -51,11 +65,23 @@ namespace Studio650.Budget
             if (manager != null)
                 manager.SelectionChanged -= Refresh;
 
+            if (!ownsGameplayCursor)
+                return;
+
+            ownsGameplayCursor = false;
             RestoreGameplayCursor();
+            GameplayModalLock.Release(this);
         }
 
-        private void EnableUiCursor()
+        private bool EnableUiCursor()
         {
+            if (!GameplayModalLock.TryAcquire(this))
+            {
+                ownsGameplayCursor = false;
+                return false;
+            }
+
+            ownsGameplayCursor = true;
             ResolveUiManager();
             if (uiManager != null)
             {
@@ -67,12 +93,13 @@ namespace Studio650.Budget
                 BenignoGLWebBridge.SetGameplayPointerMode(false);
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                return;
+                return true;
             }
 
             BenignoGLWebBridge.SetGameplayPointerMode(false);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            return true;
         }
 
         private void RestoreGameplayCursor()
@@ -127,7 +154,9 @@ namespace Studio650.Budget
                     option.DisplayName,
                     option.Description,
                     FormatPrice(option.PriceEuros),
-                    selection.RuntimeMaterial != null ? selection.RuntimeMaterial : option.Material);
+                    selection.RuntimeMaterial != null ? selection.RuntimeMaterial : option.Material,
+                    selection.HasPreviewTint,
+                    selection.PreviewTint);
             }
 
             if (totalText != null)

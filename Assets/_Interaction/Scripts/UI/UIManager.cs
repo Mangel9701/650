@@ -39,25 +39,16 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-            if (firstPerson == null)
-            {
-                GameObject player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null)
-                {
-                    firstPerson = player.GetComponent<FirstPersonMovement>();
-                       if (playerStartsDisable == true)
-                        {
-                            showCursor();
-                        }
+        if (firstPerson == null)
+            ResolveFirstPerson();
 
-                        else
-                        {
-                            hideCursor();
-                        }
-                }
-        
-
-            }
+        if (firstPerson != null)
+        {
+            if (playerStartsDisable)
+                showCursor();
+            else
+                hideCursor();
+        }
 
         FadeOut();
         isMobile = DetectMobileWebGL();
@@ -254,6 +245,7 @@ public class UIManager : MonoBehaviour
     public void showCursor()
     {
         Debug.Log("Cursor activado, player desactivado");
+        ResolveFirstPerson();
         if (firstPerson != null)
         {
             firstPerson.SetInteracting(true);
@@ -268,6 +260,7 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Cursor desactivado, player activado");
         ClearSelectedUI();
+        ResolveFirstPerson();
 
         if (firstPerson != null){
             firstPerson.ResetMovementState();
@@ -283,5 +276,18 @@ public class UIManager : MonoBehaviour
     {
         if (EventSystem.current != null)
             EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    private void ResolveFirstPerson()
+    {
+        if (firstPerson != null)
+            return;
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+            firstPerson = player.GetComponent<FirstPersonMovement>();
+
+        if (firstPerson == null)
+            firstPerson = FindAnyObjectByType<FirstPersonMovement>();
     }
 }

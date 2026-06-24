@@ -13,12 +13,10 @@ namespace Studio650.Budget
                 return;
 
             BudgetCalculatorManager manager = BudgetCalculatorManager.GetOrCreate();
-            if (manager == null || manager.Catalog == null)
+            if (manager == null)
                 return;
 
-            Material selectedMaterial = transferHandler.CurrentSourceMaterial;
-            BudgetMaterialOptionSO option = manager.Catalog.FindByMaterialName(transferHandler.CurrentSourceMaterialName);
-            if (option != null)
+            if (BudgetMaterialOptionResolver.TryResolve(transferHandler, manager.Catalog, out BudgetMaterialOptionSO option, out Material selectedMaterial))
                 manager.SetSelection(option, selectedMaterial);
         }
     }

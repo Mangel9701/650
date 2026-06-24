@@ -19,6 +19,18 @@ namespace Studio650.Budget
 
         public void SetData(string component, string material, string description, string price, Material previewMaterial)
         {
+            SetData(component, material, description, price, previewMaterial, false, Color.white);
+        }
+
+        public void SetData(
+            string component,
+            string material,
+            string description,
+            string price,
+            Material previewMaterial,
+            bool hasTintOverride,
+            Color tintOverride)
+        {
             AutoWireMissingReferences();
             ApplyLayout();
 
@@ -34,7 +46,7 @@ namespace Studio650.Budget
             if (priceText != null)
                 priceText.text = price;
 
-            ApplyPreview(previewMaterial);
+            ApplyPreview(previewMaterial, hasTintOverride, tintOverride);
         }
 
         private void Awake()
@@ -155,13 +167,13 @@ namespace Studio650.Budget
             priceText.alignment = TextAlignmentOptions.Right;
         }
 
-        private void ApplyPreview(Material material)
+        private void ApplyPreview(Material material, bool hasTintOverride, Color tintOverride)
         {
             if (previewImage == null)
                 return;
 
             Texture texture = ResolveMaterialTexture(material);
-            Color tint = ResolveMaterialTint(material);
+            Color tint = hasTintOverride ? tintOverride : ResolveMaterialTint(material);
             if (texture != null)
             {
                 EnsurePreviewMask();

@@ -96,6 +96,12 @@ namespace Studio650.ColorField
         {
             if (manageGameplayCursor)
             {
+                if (!GameplayModalLock.TryAcquire(this))
+                {
+                    gameObject.SetActive(false);
+                    return;
+                }
+
                 gameplayCursorEnabled = true;
                 EnableUiCursor();
             }
@@ -373,6 +379,7 @@ namespace Studio650.ColorField
                 return;
 
             gameplayCursorEnabled = false;
+            GameplayModalLock.Release(this);
             ResolveUiManager();
             if (uiManager != null)
             {
