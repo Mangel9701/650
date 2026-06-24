@@ -236,6 +236,13 @@ public class ItemDetector : MonoBehaviour
             return item.transform;
         }
 
+        InteractObject parentItem = obj.GetComponentInParent<InteractObject>();
+        if (parentItem != null)
+        {
+            offset = parentItem.EyeOffset;
+            return parentItem.transform;
+        }
+
         return null;
     }
 
@@ -265,7 +272,16 @@ public class ItemDetector : MonoBehaviour
             bool foundOffset = false;
 
             if (kvp.Key.TryGetComponent<InteractObject>(out var item))
+            {
                 offsetPos = kvp.Key.TransformPoint(item.EyeOffset);
+                foundOffset = true;
+            }
+            else if (kvp.Key.GetComponentInParent<InteractObject>() is InteractObject parentItem)
+            {
+                offsetPos = parentItem.transform.TransformPoint(parentItem.EyeOffset);
+                foundOffset = true;
+            }
+
             if (foundOffset)
                 Gizmos.DrawSphere(offsetPos, 0.02f);
         }

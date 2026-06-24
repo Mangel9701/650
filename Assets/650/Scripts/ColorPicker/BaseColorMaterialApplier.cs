@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Scripting;
+using InteractionSystem;
+using Studio650.Budget;
 
 namespace Studio650.ColorField
 {
@@ -8,7 +10,8 @@ namespace Studio650.ColorField
     [DisallowMultipleComponent]
     public class BaseColorMaterialApplier : MonoBehaviour
     {
-        [Header("Objetivo de prueba")]
+        [Header("Objetivo de color")]
+        [SerializeField] private MaterialTransferHandler targetTransferHandler;
         [SerializeField] private Renderer targetRenderer;
         [SerializeField] private int materialIndex;
 
@@ -20,6 +23,16 @@ namespace Studio650.ColorField
         public UnityEvent onApplied = new UnityEvent();
 
         private Material runtimeMaterial;
+
+        public MaterialTransferHandler TargetTransferHandler
+        {
+            get => targetTransferHandler;
+            set
+            {
+                targetTransferHandler = value;
+                runtimeMaterial = null;
+            }
+        }
 
         public Renderer TargetRenderer
         {
@@ -74,28 +87,44 @@ namespace Studio650.ColorField
             Color previousColor = material.GetColor(propertyName);
             color.a = previousColor.a;
             material.SetColor(propertyName, color);
+
+            if (targetTransferHandler != null)
+                BudgetMaterialTransferBridge.NotifyTransfer(targetTransferHandler);
+
             onApplied.Invoke();
         }
 
         public void SetTarget(Renderer renderer)
         {
+            targetTransferHandler = null;
             TargetRenderer = renderer;
         }
 
         public void SetTarget(Renderer renderer, int index)
         {
+            targetTransferHandler = null;
             targetRenderer = renderer;
             materialIndex = index;
             runtimeMaterial = null;
         }
 
+        public void SetTarget(MaterialTransferHandler transferHandler)
+        {
+            targetTransferHandler = transferHandler;
+            runtimeMaterial = null;
+        }
+
         private Material GetRuntimeMaterial()
         {
+            if (targetTransferHandler != null)
+            {
+                runtimeMaterial = targetTransferHandler.CurrentSourceMaterial;
+                if (runtimeMaterial != null)
+                    return runtimeMaterial;
+            }
+
             if (targetRenderer == null)
                 return null;
-
-            if (runtimeMaterial != null)
-                return runtimeMaterial;
 
             Material[] materials = targetRenderer.materials;
             if (materialIndex < 0 || materialIndex >= materials.Length)

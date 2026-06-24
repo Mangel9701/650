@@ -1,12 +1,18 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 [DefaultExecutionOrder(1000)]
 public class SceneSpawnManager : MonoBehaviour
 {
     private const string LoadingSceneName = "LoadingScreen";
+
+    [SerializeField] private bool projectSpawnToNavMesh = true;
+    [SerializeField, Min(0.01f)] private float spawnNavMeshSampleRadius = 2f;
+    [SerializeField] private int spawnNavMeshAreaMask = -1;
+    [SerializeField] private bool treatSpawnPointAsGroundPosition = true;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize()
@@ -66,14 +72,18 @@ public class SceneSpawnManager : MonoBehaviour
             return;
         }
 
+        Vector3 spawnPosition = ResolvePlayerRootPosition(player, spawn);
+        Quaternion bodyRotation = Quaternion.Euler(0f, spawn.eulerAngles.y, 0f);
+        float cameraPitch = spawn.eulerAngles.x;
+
         FirstPersonMovement movement = player.GetComponent<FirstPersonMovement>();
         if (movement != null)
         {
-            movement.TeleportTo(spawn);
+            movement.TeleportTo(spawnPosition, bodyRotation, cameraPitch);
             return;
         }
 
-        TeleportTransform(player, spawn);
+        TeleportTransform(player, spawnPosition, bodyRotation);
     }
 
     private Transform ResolveSpawnPoint(string spawnID)
@@ -100,7 +110,28 @@ public class SceneSpawnManager : MonoBehaviour
         return null;
     }
 
-    private void TeleportTransform(GameObject player, Transform spawn)
+    private Vector3 ResolvePlayerRootPosition(GameObject player, Transform spawn)
+    {
+        Vector3 groundPosition = spawn.position;
+        if (projectSpawnToNavMesh && NavMesh.SamplePosition(spawn.position, out NavMeshHit hit, spawnNavMeshSampleRadius, spawnNavMeshAreaMask))
+            groundPosition = hit.position;
+
+        if (!treatSpawnPointAsGroundPosition)
+            return groundPosition;
+
+        CharacterController controller = player.GetComponent<CharacterController>();
+        if (controller == null)
+            return groundPosition;
+
+        float scaleY = Mathf.Abs(player.transform.lossyScale.y);
+        if (scaleY <= Mathf.Epsilon)
+            scaleY = 1f;
+
+        float rootOffsetFromGround = (controller.height * 0.5f - controller.center.y) * scaleY;
+        return groundPosition + Vector3.up * rootOffsetFromGround;
+    }
+
+    private void TeleportTransform(GameObject player, Vector3 spawnPosition, Quaternion bodyRotation)
     {
         CharacterController controller = player.GetComponent<CharacterController>();
         bool controllerWasEnabled = controller != null && controller.enabled;
@@ -108,8 +139,7 @@ public class SceneSpawnManager : MonoBehaviour
         if (controller != null)
             controller.enabled = false;
 
-        Quaternion bodyRotation = Quaternion.Euler(0f, spawn.eulerAngles.y, 0f);
-        player.transform.SetPositionAndRotation(spawn.position, bodyRotation);
+        player.transform.SetPositionAndRotation(spawnPosition, bodyRotation);
 
         if (controller != null)
             controller.enabled = controllerWasEnabled;

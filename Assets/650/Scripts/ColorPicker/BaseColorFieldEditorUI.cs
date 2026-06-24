@@ -487,18 +487,14 @@ namespace Studio650.ColorField
             if (handle == null || field == null || field.transform is not RectTransform fieldRect)
                 return;
 
-            Rect rect = fieldRect.rect;
-            Vector2 fieldLocalPosition = new Vector2(
-                Mathf.Lerp(rect.xMin, rect.xMax, Mathf.Clamp01(x)),
-                Mathf.Lerp(rect.yMin, rect.yMax, Mathf.Clamp01(y)));
-
-            RectTransform targetParent = handle.parent as RectTransform;
-            if (targetParent == null)
+            if (handle.parent != fieldRect)
                 return;
 
-            Vector3 worldPosition = fieldRect.TransformPoint(fieldLocalPosition);
-            Vector3 parentLocalPosition = targetParent.InverseTransformPoint(worldPosition);
-            handle.anchoredPosition = parentLocalPosition;
+            Vector2 normalizedPosition = new Vector2(Mathf.Clamp01(x), Mathf.Clamp01(y));
+            handle.anchorMin = normalizedPosition;
+            handle.anchorMax = normalizedPosition;
+            handle.pivot = new Vector2(0.5f, 0.5f);
+            handle.anchoredPosition = Vector2.zero;
         }
 
         private static Color ClampColor(Color color)

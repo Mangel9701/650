@@ -13,6 +13,10 @@ public class Interact : MonoBehaviour
     [SerializeField] private LayerMask layerItem;
     [SerializeField] private LayerMask layerDoor;
     [SerializeField] private LayerMask occlusionLayer;
+    [SerializeField, HideInInspector] private LayerMask layer3D;
+    [SerializeField, HideInInspector] private LayerMask layerTexture;
+    [SerializeField, HideInInspector] private LayerMask layerPainting;
+    [SerializeField, HideInInspector] private LayerMask layerVideo;
 
     // --- DEBUGGING VISUAL ---
     private GameObject debugLineInstance;
@@ -28,6 +32,8 @@ public class Interact : MonoBehaviour
 
     private Transform currentTarget;
     private GameObject currentInstance;
+    private int noPostLayerMask;
+    private int namedDoorLayerMask;
 
     public FirstPersonMovement firstPerson;
     public bool wasLookingAtDoor = false;
@@ -35,6 +41,8 @@ public class Interact : MonoBehaviour
     private void Awake()
     {
         inputActions = new InputSystem_Actions();
+        noPostLayerMask = LayerMask.GetMask("NoPost");
+        namedDoorLayerMask = LayerMask.GetMask("Door");
     }
 
     private void OnEnable()
@@ -69,15 +77,18 @@ public class Interact : MonoBehaviour
         if (Camera.main == null) return;
 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        int combinedLayerMask = layerItem  | layerDoor;
+        int itemLayerMask = GetItemLayerMask();
+        int doorLayerMask = GetDoorLayerMask();
+        int combinedLayerMask = itemLayerMask | doorLayerMask;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, combinedLayerMask))
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, combinedLayerMask, QueryTriggerInteraction.Collide))
         {
             Debug.Log($"Objeto detectado: {hit.collider.name} en la capa {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
             Vector3 finalPosition;
-            bool isDoor = (1 << hit.collider.gameObject.layer) == layerDoor.value;
+            DoorSceneLoader door = hit.collider.GetComponentInParent<DoorSceneLoader>();
+            bool isDoor = door != null && IsInLayerMask(hit.collider.gameObject.layer, doorLayerMask);
 
-            if (TryGetOffsetWorld(hit.collider, isDoor, out finalPosition))
+            if (TryGetOffsetWorld(hit.collider, isDoor, out finalPosition, out _))
             {
                 if (IsOccluded(finalPosition, hit.collider))
                 {
@@ -86,23 +97,21 @@ public class Interact : MonoBehaviour
                 }
             }
 
-            int hitLayerMask = 1 << hit.collider.gameObject.layer;
-
-            if ((hitLayerMask & layerItem) != 0)
+            var interactObject = hit.collider.GetComponentInParent<InteractObject>();
+            if (!isDoor && interactObject != null)
             {
-                var interactObject = hit.collider.GetComponent<InteractObject>();
-                if (interactObject != null && interactObject.stopPlayerMovementOnInteract && firstPerson != null)
+                if (interactObject.stopPlayerMovementOnInteract && firstPerson != null)
                 {
                     firstPerson.SetInteracting(true);
                 }
 
-                interactObject?.OnInteract();
+                interactObject.OnInteract();
 
 
             }
-            else if ((hitLayerMask & layerDoor) != 0)
+            else if (isDoor)
             {
-                hit.collider.GetComponent<DoorSceneLoader>()?.LoadNewScene();
+                door.LoadNewScene();
             }
         }
     }
@@ -112,16 +121,19 @@ public class Interact : MonoBehaviour
         if (Camera.main == null) return;
 
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        int combinedLayerMask = layerItem  | layerDoor ;
+        int itemLayerMask = GetItemLayerMask();
+        int doorLayerMask = GetDoorLayerMask();
+        int combinedLayerMask = itemLayerMask | doorLayerMask;
         bool foundVisibleTarget = false;
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, interactRange, combinedLayerMask))
+        if (Physics.Raycast(ray, out hit, interactRange, combinedLayerMask, QueryTriggerInteraction.Collide))
         {
             Vector3 finalPosition;
-            bool isDoor = (1 << hit.collider.gameObject.layer) == layerDoor.value;
+            DoorSceneLoader door = hit.collider.GetComponentInParent<DoorSceneLoader>();
+            bool isDoor = door != null && IsInLayerMask(hit.collider.gameObject.layer, doorLayerMask);
 
-            if (TryGetOffsetWorld(hit.collider, isDoor, out finalPosition))
+            if (TryGetOffsetWorld(hit.collider, isDoor, out finalPosition, out Transform targetTransform))
             {
                 if (!IsOccluded(finalPosition, hit.collider))
                 {
@@ -131,25 +143,26 @@ public class Interact : MonoBehaviour
 
                     if (isDoor)
                     {
-                        UIIngameManager.Instance.ShowInteractPrompt(true);
-                        UIIngameManager.Instance.HideInteractPrompt(false);
-                        DoorSceneLoader door = hit.collider.GetComponent<DoorSceneLoader>();
+                        ShowPrompt(true);
+                        HidePrompt(false);
                         if (door != null)
                         {
-                            doorNameDisplay.UpdateDoorName(door.nombreEscenario);
+                            if (doorNameDisplay != null)
+                                doorNameDisplay.UpdateDoorName(door.nombreEscenario);
+
                             if (door != lastSeenDoor) lastSeenDoor = door;
                         }
                     }
                     else
                     {
-                        UIIngameManager.Instance.ShowInteractPrompt(false);
-                        UIIngameManager.Instance.HideInteractPrompt(true);
+                        ShowPrompt(false);
+                        HidePrompt(true);
                     }
 
-                    if (hit.transform != currentTarget)
+                    if (targetTransform != currentTarget)
                     {
                         DestroyCurrentInstance();
-                        currentTarget = hit.transform;
+                        currentTarget = targetTransform;
                         GameObject prefabToInstantiate = isDoor ? doorInteractPrefab : interactPrefab;
                         if (prefabToInstantiate != null)
                             currentInstance = Instantiate(prefabToInstantiate);
@@ -165,8 +178,8 @@ public class Interact : MonoBehaviour
 
         if (!foundVisibleTarget)
         {
-            UIIngameManager.Instance.HideInteractPrompt(true);
-            UIIngameManager.Instance.HideInteractPrompt(false);
+            HidePrompt(true);
+            HidePrompt(false);
             DestroyCurrentInstance();
             wasLookingAtDoor = false;
             if (lastSeenDoor != null)
@@ -218,7 +231,7 @@ public class Interact : MonoBehaviour
         bool isBlocked = false;
         Vector3 rayEndPosition = targetPosition; 
 
-        if (Physics.Raycast(origin, direction, out hit, distance, occlusionLayer))
+        if (Physics.Raycast(origin, direction, out hit, distance, occlusionLayer, QueryTriggerInteraction.Ignore))
         {
             if (hit.collider != targetCollider && !hit.transform.IsChildOf(targetCollider.transform))
             {
@@ -232,23 +245,76 @@ public class Interact : MonoBehaviour
         return isBlocked;
     }
 
+    private int GetItemLayerMask()
+    {
+        int mask = layerItem.value
+            | layer3D.value
+            | layerTexture.value
+            | layerPainting.value
+            | layerVideo.value;
 
-    private bool TryGetOffsetWorld(Collider col, bool isDoor, out Vector3 worldPos)
+        mask |= noPostLayerMask;
+        return mask;
+    }
+
+    private int GetDoorLayerMask()
+    {
+        return layerDoor.value | namedDoorLayerMask;
+    }
+
+    private static bool IsInLayerMask(int layer, int mask)
+    {
+        return (mask & (1 << layer)) != 0;
+    }
+
+    private void ShowPrompt(bool isDoor)
+    {
+        if (UIIngameManager.Instance == null)
+            return;
+
+        UIIngameManager.Instance.ShowInteractPrompt(isDoor);
+    }
+
+    private void HidePrompt(bool isDoor)
+    {
+        if (UIIngameManager.Instance == null)
+            return;
+
+        UIIngameManager.Instance.HideInteractPrompt(isDoor);
+    }
+
+
+    private bool TryGetOffsetWorld(Collider col, bool isDoor, out Vector3 worldPos, out Transform targetTransform)
     {
         worldPos = col.bounds.center;
+        targetTransform = null;
 
         if (!isDoor)
         {
-            if (col.TryGetComponent<InteractObject>(out var item))
+            InteractObject item = col.GetComponent<InteractObject>();
+            if (item == null)
             {
+                item = col.GetComponentInParent<InteractObject>();
+            }
+
+            if (item != null)
+            {
+                targetTransform = item.transform;
                 worldPos = item.transform.TransformPoint(item.EyeOffset);
                 return true;
             }
         }
         else
         {
-            if (col.TryGetComponent<DoorSceneLoader>(out var door))
+            DoorSceneLoader door = col.GetComponent<DoorSceneLoader>();
+            if (door == null)
             {
+                door = col.GetComponentInParent<DoorSceneLoader>();
+            }
+
+            if (door != null)
+            {
+                targetTransform = door.transform;
                 worldPos = col.bounds.center + door.doorIconOffset;
                 return true;
             }

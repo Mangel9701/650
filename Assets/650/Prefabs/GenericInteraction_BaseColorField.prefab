@@ -17,6 +17,18 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value:
+      objectReference: {fileID: 5677995896587468250}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 6857791959906100115}
@@ -25,28 +37,60 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: TransferMaterial
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
       value: OpenPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: InteractionSystem.MaterialTransferHandler, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: Studio650.ColorField.BaseColorFieldPanelOpener, Assembly-CSharp
       objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 2884354406334622653, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: onInteract.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: m_Name
       value: GenericInteraction_BaseColorField
       objectReference: {fileID: 0}
+    - target: {fileID: 8379179372495218017, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: a0d0b4b4f3c24e2b8e3f2b1e9b8c6540, type: 2}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.12603419
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.12603419
+      objectReference: {fileID: 0}
+    - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.12603419
+      objectReference: {fileID: 0}
     - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.79
+      value: -1.398
       objectReference: {fileID: 0}
     - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.16
+      value: 3.811
       objectReference: {fileID: 0}
     - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.23
+      value: -2.22
       objectReference: {fileID: 0}
     - target: {fileID: 8676087994684085042, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -83,7 +127,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6857791959906100115}
+    - targetCorrespondingSourceObject: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5677995896587468250}
   m_SourcePrefab: {fileID: 100100000, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+--- !u!23 &3393009640135518102 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8379179372495218017, guid: b58f12986ec19874fa11ee758defead8, type: 3}
+  m_PrefabInstance: {fileID: 6583901418285646583}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3875250506809028857 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7969419403086950926, guid: b58f12986ec19874fa11ee758defead8, type: 3}
@@ -99,12 +151,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7521c776d2aa4a141b788f5297214a57, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Studio650.ColorField.BaseColorFieldPanelOpener
   panelPrefab: {fileID: 96122880093408136, guid: 3fa99c40cb202134483776a3f468f3fb, type: 3}
   targetCanvas: {fileID: 0}
   panelParent: {fileID: 0}
   reuseOpenPanel: 1
-  targetRenderer: {fileID: 0}
-  materialIndex: 0
+  targetTransferHandler: {fileID: 5677995896587468250}
   colorPropertyName: _BaseColor
+--- !u!114 &5677995896587468250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3875250506809028857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 296b543e47edfa44ea3778983319d059, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionSystem.MaterialTransferHandler
+  sourceRenderer: {fileID: 3393009640135518102}
+  sourceMaterialIndex: 0
+  targets:
+  - renderer: {fileID: 0}
+    materialIndex: 0
+  onTransferComplete:
+    m_PersistentCalls:
+      m_Calls: []

@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - UIbutton
+  - UIManager
   layers:
   - Default
   - TransparentFX
@@ -12,8 +13,8 @@ TagManager:
   - Lamparas
   - Water
   - UI
-  - 
-  - 
+  - Door
+  - Collision
   - 
   - 
   - 
@@ -51,3 +52,4 @@ TagManager:
   - Light Layer 5
   - Light Layer 6
   - Light Layer 7
+  m_MigratedRenderPipelines: []

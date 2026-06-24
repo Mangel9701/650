@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Scripting;
 using UnityEngine.UI;
+using InteractionSystem;
+using System;
 
 namespace Studio650.ColorField
 {
@@ -9,15 +11,16 @@ namespace Studio650.ColorField
     [DisallowMultipleComponent]
     public class BaseColorFieldPanelOpener : MonoBehaviour
     {
+        private const string RuntimeCanvasName = "Runtime_ColorFieldCanvas";
+
         [Header("Panel")]
         [SerializeField] private GameObject panelPrefab;
         [SerializeField] private Canvas targetCanvas;
         [SerializeField] private Transform panelParent;
         [SerializeField] private bool reuseOpenPanel = true;
 
-        [Header("Objetivo de prueba")]
-        [SerializeField] private Renderer targetRenderer;
-        [SerializeField] private int materialIndex;
+        [Header("Objetivo de color")]
+        [SerializeField] private MaterialTransferHandler targetTransferHandler;
         [SerializeField] private string colorPropertyName = "_BaseColor";
 
         private GameObject panelInstance;
@@ -30,9 +33,12 @@ namespace Studio650.ColorField
                 return;
             }
 
+            if (reuseOpenPanel && panelInstance == null)
+                panelInstance = FindExistingScenePanel();
+
             if (reuseOpenPanel && panelInstance != null)
             {
-                panelInstance.SetActive(true);
+                ShowPanel(panelInstance, false);
                 return;
             }
 
@@ -40,9 +46,7 @@ namespace Studio650.ColorField
             panelInstance = Instantiate(panelPrefab, parent, false);
             panelInstance.name = panelPrefab.name;
 
-            CenterPanel(panelInstance);
-            ConfigureMaterialApplier(panelInstance);
-            panelInstance.SetActive(true);
+            ShowPanel(panelInstance, true);
         }
 
         public void ClosePanel()
@@ -61,9 +65,9 @@ namespace Studio650.ColorField
                 ClosePanel();
         }
 
-        public void SetTargetRenderer(Renderer renderer)
+        public void SetTargetTransferHandler(MaterialTransferHandler transferHandler)
         {
-            targetRenderer = renderer;
+            targetTransferHandler = transferHandler;
             ConfigureMaterialApplier(panelInstance);
         }
 
@@ -78,18 +82,128 @@ namespace Studio650.ColorField
             if (panelParent != null)
                 return panelParent;
 
-            if (targetCanvas == null)
-                targetCanvas = FindAnyObjectByType<Canvas>();
+            if (targetCanvas != null && IsScreenSpaceCanvas(targetCanvas))
+                return targetCanvas.transform;
 
+            if (targetCanvas != null)
+                Debug.LogWarning($"[BaseColorFieldPanelOpener] El canvas asignado en '{name}' es World Space. Se buscara un canvas de HUD.", this);
+
+            targetCanvas = FindPreferredScreenSpaceCanvas();
             if (targetCanvas == null)
                 targetCanvas = CreateRuntimeCanvas();
 
             return targetCanvas.transform;
         }
 
+        private GameObject FindExistingScenePanel()
+        {
+            BaseColorFieldEditorUI[] panels = FindObjectsByType<BaseColorFieldEditorUI>(FindObjectsInactive.Include);
+            for (int i = 0; i < panels.Length; i++)
+            {
+                BaseColorFieldEditorUI panel = panels[i];
+                if (panel == null || panel.gameObject == null)
+                    continue;
+
+                GameObject panelObject = panel.gameObject;
+                if (!panelObject.scene.IsValid() || !panelObject.scene.isLoaded)
+                    continue;
+
+                if (!MatchesPanelPrefabName(panelObject))
+                    continue;
+
+                if (!IsUnderScreenSpaceCanvas(panelObject.transform))
+                    continue;
+
+                return panelObject;
+            }
+
+            return null;
+        }
+
+        private bool MatchesPanelPrefabName(GameObject panelObject)
+        {
+            if (panelPrefab == null)
+                return true;
+
+            return panelObject.name.StartsWith(panelPrefab.name, StringComparison.Ordinal);
+        }
+
+        private static Canvas FindPreferredScreenSpaceCanvas()
+        {
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+            Canvas bestCanvas = null;
+            int bestScore = int.MinValue;
+
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                Canvas canvas = canvases[i];
+                if (canvas == null || !canvas.gameObject.scene.IsValid() || !canvas.gameObject.scene.isLoaded)
+                    continue;
+
+                Canvas rootCanvas = canvas.rootCanvas != null ? canvas.rootCanvas : canvas;
+                if (!IsScreenSpaceCanvas(rootCanvas))
+                    continue;
+
+                int score = GetCanvasScore(rootCanvas);
+                if (score <= bestScore)
+                    continue;
+
+                bestCanvas = rootCanvas;
+                bestScore = score;
+            }
+
+            return bestCanvas;
+        }
+
+        private static int GetCanvasScore(Canvas canvas)
+        {
+            int score = canvas.gameObject.activeInHierarchy ? 10000 : 0;
+            string lowerName = canvas.name.ToLowerInvariant();
+
+            if (lowerName.Contains("hud"))
+                score += 1000;
+
+            if (lowerName.Contains("ui"))
+                score += 500;
+
+            if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                score += 100;
+
+            score += canvas.sortingOrder;
+            return score;
+        }
+
+        private static bool IsUnderScreenSpaceCanvas(Transform panelTransform)
+        {
+            Canvas canvas = panelTransform.GetComponentInParent<Canvas>(true);
+            if (canvas == null)
+                return false;
+
+            Canvas rootCanvas = canvas.rootCanvas != null ? canvas.rootCanvas : canvas;
+            return IsScreenSpaceCanvas(rootCanvas);
+        }
+
+        private static bool IsScreenSpaceCanvas(Canvas canvas)
+        {
+            return canvas != null && canvas.renderMode != RenderMode.WorldSpace;
+        }
+
+        private void ShowPanel(GameObject panel, bool center)
+        {
+            if (panel == null)
+                return;
+
+            if (center)
+                CenterPanel(panel);
+
+            panel.transform.SetAsLastSibling();
+            ConfigureMaterialApplier(panel);
+            panel.SetActive(true);
+        }
+
         private Canvas CreateRuntimeCanvas()
         {
-            var canvasObject = new GameObject("Runtime_ColorFieldCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var canvasObject = new GameObject(RuntimeCanvasName, typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
@@ -120,7 +234,13 @@ namespace Studio650.ColorField
             if (applier == null)
                 return;
 
-            applier.SetTarget(targetRenderer, materialIndex);
+            if (targetTransferHandler == null)
+            {
+                Debug.LogWarning($"[BaseColorFieldPanelOpener] No hay MaterialTransferHandler asignado en '{name}'.", this);
+                return;
+            }
+
+            applier.SetTarget(targetTransferHandler);
             applier.ColorPropertyName = colorPropertyName;
         }
 

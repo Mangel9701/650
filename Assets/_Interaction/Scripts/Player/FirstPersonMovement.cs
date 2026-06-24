@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.EventSystems;
 using Unity.Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -15,7 +16,10 @@ public class FirstPersonMovement : MonoBehaviour
     [Header("Opciones de entrada")]
     [SerializeField]
     private bool usePointerLook;
-    [SerializeField] private bool maintainEditorPointerLock = true;
+    [SerializeField] private bool maintainEditorPointerLock;
+    [SerializeField] private bool simulateWebTemplateInEditor = true;
+    [SerializeField] private bool enableEditorKeyboardFallback = true;
+    [SerializeField] private bool enableEditorMouseLookFallback = true;
 
     Vector2 moveInput;
     Vector2 lookInput;
@@ -25,7 +29,9 @@ public class FirstPersonMovement : MonoBehaviour
     [SerializeField] private float mouseSensitivity = 25f;
 
     [Header("Camara")]
-    [SerializeField] private CinemachineVirtualCamera virtualCamera;
+    [SerializeField] private CinemachineVirtualCameraBase virtualCamera;
+    [SerializeField] private Transform cameraPivot;
+    [SerializeField] private Camera playerCamera;
 
     [Header("Configuracion de Camara")]
     public float cameraFocusDuration = 0.5f;
@@ -33,6 +39,10 @@ public class FirstPersonMovement : MonoBehaviour
 
     private CharacterController controller;
     private Transform cameraHolder;
+    private Transform defaultCameraParent;
+    private Vector3 defaultCameraLocalPosition;
+    private Quaternion defaultCameraLocalRotation;
+    private bool defaultCameraPoseCached;
     private float xRotation = 0f;
 
     public bool isInteracting;
@@ -42,7 +52,20 @@ public class FirstPersonMovement : MonoBehaviour
     private bool isMobile;
     private bool appliedInteractingState;
 
-    void Start()
+    protected CharacterController MovementController
+    {
+        get
+        {
+            if (controller == null)
+                controller = GetComponent<CharacterController>();
+
+            return controller;
+        }
+    }
+
+    protected float MovementAcceleration => acceleration;
+
+    protected virtual void Start()
     {
         EnsureReferences();
         isMobile = DeviceDetector.Instance != null && DeviceDetector.Instance.IsMobile;
@@ -50,27 +73,27 @@ public class FirstPersonMovement : MonoBehaviour
         ApplyInteractionState(isInteracting);
     }
 
-    void Update()
+    protected virtual void Update()
     {
         SyncExternalInteractionState();
+        HandleEditorTemplateInput();
 
-        if (ShouldPauseForWebFocus())
+        bool pauseLookForWebFocus = ShouldPauseLookForWebFocus();
+        if (pauseLookForWebFocus)
         {
-            moveInput = Vector2.zero;
             lookInput = Vector2.zero;
-            currentVelocity = Vector3.zero;
 
             if (Cursor.lockState != CursorLockMode.None)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
-
-            controller.Move(new Vector3(0, -0.1f, 0));
-            return;
         }
 
-        if (isInteracting)
+        bool allowEditorMovementWhileInteracting = ShouldAllowEditorKeyboardMovement();
+        bool allowEditorLookWhileInteracting = ShouldAllowEditorMouseLook();
+
+        if (isInteracting && !allowEditorMovementWhileInteracting && !allowEditorLookWhileInteracting)
         {
             if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
             {
@@ -82,25 +105,28 @@ public class FirstPersonMovement : MonoBehaviour
         else
         {
             EnsureEditorPointerLock();
-            HandleMovement();
+            if (!isInteracting || allowEditorMovementWhileInteracting)
+            {
+                HandleMovement();
+            }
 
-            if (!usePointerLook)
+            if (!usePointerLook && (!pauseLookForWebFocus || allowEditorLookWhileInteracting))
             {
                 HandleMouseLook();
             }
         }
 
-        controller.Move(new Vector3(0, -0.1f, 0));
+        ApplyGrounding();
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
         isInteracting = false;
         appliedInteractingState = false;
         inputActions = new InputSystem_Actions();
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         inputActions.Player.Enable();
         inputActions.Player.Move.performed += OnMove;
@@ -117,7 +143,7 @@ public class FirstPersonMovement : MonoBehaviour
         }
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         inputActions.Player.Move.performed -= OnMove;
         inputActions.Player.Move.canceled -= OnMove;
@@ -139,7 +165,7 @@ public class FirstPersonMovement : MonoBehaviour
         }
     }
 
-    private bool ShouldPauseForWebFocus()
+    private bool ShouldPauseLookForWebFocus()
     {
         return !isMobile
             && !isInteracting
@@ -149,18 +175,12 @@ public class FirstPersonMovement : MonoBehaviour
 
     private void OnMove(InputAction.CallbackContext context)
     {
-        if (ShouldPauseForWebFocus())
-        {
-            moveInput = Vector2.zero;
-            return;
-        }
-
         moveInput = context.ReadValue<Vector2>();
     }
 
     private void OnLook(InputAction.CallbackContext context)
     {
-        if (ShouldPauseForWebFocus())
+        if (ShouldPauseLookForWebFocus())
         {
             lookInput = Vector2.zero;
             return;
@@ -200,27 +220,32 @@ public class FirstPersonMovement : MonoBehaviour
         ApplyInteractionState(value);
     }
 
-    public void TeleportTo(Transform target)
+    public virtual void TeleportTo(Transform target)
     {
         if (target == null) return;
 
+        Quaternion bodyRotation = Quaternion.Euler(0f, target.eulerAngles.y, 0f);
+        TeleportTo(target.position, bodyRotation, target.eulerAngles.x);
+    }
+
+    public virtual void TeleportTo(Vector3 targetPosition, Quaternion targetRotation, float cameraPitch)
+    {
         EnsureReferences();
 
         bool controllerWasEnabled = controller != null && controller.enabled;
         if (controller != null)
             controller.enabled = false;
 
-        Quaternion bodyRotation = Quaternion.Euler(0f, target.eulerAngles.y, 0f);
-        transform.SetPositionAndRotation(target.position, bodyRotation);
+        transform.SetPositionAndRotation(targetPosition, targetRotation);
 
-        SetCameraPitch(target.eulerAngles.x);
+        SetCameraPitch(cameraPitch);
         ResetMovementState();
 
         if (controller != null)
             controller.enabled = controllerWasEnabled;
     }
 
-    public void ResetMovementState()
+    public virtual void ResetMovementState()
     {
         moveInput = Vector2.zero;
         lookInput = Vector2.zero;
@@ -232,8 +257,30 @@ public class FirstPersonMovement : MonoBehaviour
         if (controller == null)
             controller = GetComponent<CharacterController>();
 
-        if (cameraHolder == null && virtualCamera != null)
-            cameraHolder = virtualCamera.transform;
+        if (virtualCamera == null)
+            virtualCamera = GetComponentInChildren<CinemachineVirtualCameraBase>(true);
+
+        if (cameraPivot == null && virtualCamera != null)
+            cameraPivot = virtualCamera.transform;
+
+        if (playerCamera == null)
+            playerCamera = GetComponentInChildren<Camera>(true);
+
+        if (playerCamera == null)
+            playerCamera = Camera.main;
+
+        if (cameraPivot == null && playerCamera != null)
+        {
+            Transform cameraParent = playerCamera.transform.parent;
+            cameraPivot = cameraParent != null && cameraParent.IsChildOf(transform)
+                ? cameraParent
+                : playerCamera.transform;
+        }
+
+        if (cameraHolder == null && cameraPivot != null)
+            cameraHolder = cameraPivot;
+
+        CacheDefaultCameraPose();
     }
 
     private void SetCameraPitch(float pitch)
@@ -254,16 +301,18 @@ public class FirstPersonMovement : MonoBehaviour
 
     private IEnumerator SmoothCameraMove(Transform targetPivot)
     {
-        CinemachineVirtualCamera brain = virtualCamera.GetComponent<CinemachineVirtualCamera>();
+        if (targetPivot == null)
+            yield break;
 
-        if (brain != null)
+        EnsureReferences();
+        SetVirtualCameraEnabled(false);
+
+        Transform cameraTransform = GetControlledCameraTransform();
+        if (cameraTransform == null)
         {
-            brain.enabled = false;
+            SetVirtualCameraEnabled(true);
+            yield break;
         }
-
-        if (Camera.main == null) yield break;
-
-        Transform cameraTransform = Camera.main.transform;
 
         Vector3 startPos = cameraTransform.position;
         Quaternion startRot = cameraTransform.rotation;
@@ -286,7 +335,7 @@ public class FirstPersonMovement : MonoBehaviour
         cameraTransform.position = targetPivot.position;
         cameraTransform.rotation = targetPivot.rotation;
 
-        cameraTransform.SetParent(targetPivot);
+        cameraTransform.SetParent(targetPivot, true);
     }
 
     public void ReturnCamera()
@@ -294,32 +343,121 @@ public class FirstPersonMovement : MonoBehaviour
         if (cameraMoveCoroutine != null)
         {
             StopCoroutine(cameraMoveCoroutine);
+            cameraMoveCoroutine = null;
         }
 
-        CinemachineVirtualCamera brain = virtualCamera.GetComponent<CinemachineVirtualCamera>();
+        EnsureReferences();
 
-        if (brain != null)
+        Transform cameraTransform = GetControlledCameraTransform();
+        if (cameraTransform != null && defaultCameraPoseCached)
         {
-            brain.enabled = true;
+            cameraTransform.SetParent(defaultCameraParent, false);
+            cameraTransform.localPosition = defaultCameraLocalPosition;
+            cameraTransform.localRotation = defaultCameraLocalRotation;
         }
 
+        SetCameraPitch(xRotation);
+        SetVirtualCameraEnabled(true);
         SetInteracting(false);
     }
 
-    private void HandleMovement()
+    private Transform GetControlledCameraTransform()
     {
-        Vector3 moveDirection = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+        if (playerCamera != null)
+            return playerCamera.transform;
+
+        Camera mainCamera = Camera.main;
+        return mainCamera != null ? mainCamera.transform : null;
+    }
+
+    private void CacheDefaultCameraPose()
+    {
+        if (defaultCameraPoseCached || playerCamera == null)
+            return;
+
+        Transform cameraTransform = playerCamera.transform;
+        defaultCameraParent = cameraTransform.parent;
+        defaultCameraLocalPosition = cameraTransform.localPosition;
+        defaultCameraLocalRotation = cameraTransform.localRotation;
+        defaultCameraPoseCached = true;
+    }
+
+    private void SetVirtualCameraEnabled(bool value)
+    {
+        if (virtualCamera != null)
+            virtualCamera.enabled = value;
+    }
+
+    protected virtual void HandleMovement()
+    {
+        Vector2 effectiveMoveInput = GetEffectiveMoveInput();
+        Vector3 moveDirection = (transform.forward * effectiveMoveInput.y + transform.right * effectiveMoveInput.x).normalized;
         Vector3 desiredVelocity = moveDirection * moveSpeed;
         currentVelocity = Vector3.MoveTowards(currentVelocity, desiredVelocity, acceleration * Time.deltaTime);
         controller.Move(currentVelocity * Time.deltaTime);
     }
 
+    protected Vector2 GetEffectiveMoveInput()
+    {
+#if UNITY_EDITOR
+        if (enableEditorKeyboardFallback)
+        {
+            Vector2 keyboardInput = ReadEditorKeyboardMoveInput();
+            if (keyboardInput.sqrMagnitude > 0f)
+                return keyboardInput;
+        }
+#endif
+
+        return moveInput;
+    }
+
+    private bool ShouldAllowEditorKeyboardMovement()
+    {
+#if UNITY_EDITOR
+        return enableEditorKeyboardFallback && ReadEditorKeyboardMoveInput().sqrMagnitude > 0f;
+#else
+        return false;
+#endif
+    }
+
+    protected virtual void ApplyGrounding()
+    {
+        if (MovementController != null && MovementController.enabled)
+            MovementController.Move(new Vector3(0, -0.1f, 0));
+    }
+
+#if UNITY_EDITOR
+    private Vector2 ReadEditorKeyboardMoveInput()
+    {
+        Vector2 input = Vector2.zero;
+
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
+                input.y += 1f;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
+                input.y -= 1f;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+                input.x += 1f;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+                input.x -= 1f;
+        }
+
+        return Vector2.ClampMagnitude(input, 1f);
+    }
+#endif
+
     private void HandleMouseLook()
     {
         if (usePointerLook) return;
 
-        float mouseX = lookInput.x * mouseSensitivity;
-        float mouseY = lookInput.y * mouseSensitivity;
+        EnsureReferences();
+        if (cameraHolder == null)
+            return;
+
+        Vector2 effectiveLookInput = GetEffectiveLookInput();
+        float mouseX = effectiveLookInput.x * mouseSensitivity;
+        float mouseY = effectiveLookInput.y * mouseSensitivity;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
@@ -327,6 +465,45 @@ public class FirstPersonMovement : MonoBehaviour
         cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
     }
+
+    private Vector2 GetEffectiveLookInput()
+    {
+#if UNITY_EDITOR
+        if (ShouldAllowEditorMouseLook())
+        {
+            Vector2 mouseDelta = ReadEditorMouseLookInput();
+            if (mouseDelta.sqrMagnitude > 0f)
+                return mouseDelta;
+        }
+#endif
+
+        return lookInput;
+    }
+
+    private bool ShouldAllowEditorMouseLook()
+    {
+#if UNITY_EDITOR
+        return enableEditorMouseLookFallback
+            && !isMobile
+            && !usePointerLook
+            && !IsPointerOverUI();
+#else
+        return false;
+#endif
+    }
+
+#if UNITY_EDITOR
+    private Vector2 ReadEditorMouseLookInput()
+    {
+        if (Mouse.current != null)
+        {
+            Vector2 delta = Mouse.current.delta.ReadValue();
+            if (delta.sqrMagnitude > 0f)
+                return delta;
+        }
+        return Vector2.zero;
+    }
+#endif
 
     private void ApplyPointerMode()
     {
@@ -386,8 +563,44 @@ public class FirstPersonMovement : MonoBehaviour
 #endif
     }
 
+    private void HandleEditorTemplateInput()
+    {
+#if UNITY_EDITOR
+        if (!simulateWebTemplateInEditor || isMobile || isInteracting || usePointerLook)
+            return;
+
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            lookInput = Vector2.zero;
+            return;
+        }
+
+        if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+            return;
+
+        if (IsPointerOverUI())
+            return;
+
+        ApplyPointerMode();
+#endif
+    }
+
+    private bool IsPointerOverUI()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+    }
+
     private void HandleKeyLook()
     {
+        if (Keyboard.current == null)
+            return;
+
+        EnsureReferences();
+        if (cameraHolder == null)
+            return;
+
         float keyX = 0f;
         float keyY = 0f;
 
